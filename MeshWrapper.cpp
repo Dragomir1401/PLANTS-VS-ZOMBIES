@@ -93,3 +93,53 @@ float MeshWrapper::getScaleY() const
 {
 	return scaleY_;
 }
+
+void MeshWrapper::setShooterPower(int shooterPower)
+{
+	shooterPower_ = shooterPower;
+}
+
+int MeshWrapper::getShooterPower() const
+{
+	return shooterPower_;
+}
+
+void MeshWrapper::setBulletWasShot(bool bulletWasShot)
+{
+	bulletWasShot_ = bulletWasShot;
+}
+
+bool MeshWrapper::getBulletWasShot() const
+{
+	return bulletWasShot_;
+}
+
+void MeshWrapper::setTranslateX(float translateX)
+{
+	translateX_ = translateX;
+}
+
+float MeshWrapper::getTranslateX() const
+{
+	return translateX_;
+}
+
+void MeshWrapper::setAngularStep(float angularStep)
+{
+	angularStep_ = angularStep;
+}
+
+float MeshWrapper::getAngularStep() const
+{
+	return angularStep_;
+}
+
+void MeshWrapper::setTimeAccumulator(float timeAccumulator)
+{
+	timeAccumulator_ = timeAccumulator;
+}
+
+float MeshWrapper::getTimeAccumulator() const
+{
+	return timeAccumulator_;
+}

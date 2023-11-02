@@ -4,6 +4,7 @@
 #include "lab_m1/tema1/StaticScene.hpp"
 
 #define DISAPEAR_STEPS 120
+#define TYPES_OF_SHOOTERS 4
 
 namespace m1
 {
@@ -30,9 +31,14 @@ namespace m1
         void RendMovingShooter();
         void RendActiveShooters();
         void RendDisapearingShooters();
-        void Shoot(float deltaTimeSeconds);
-        void DisapearAnimation(int row, int col, float deltaTimeSeconds);
+        void Shoot();
+        void DisapearAnimation(float deltaTimeSeconds, MeshWrapper* mesh, int displacementScale);
         glm::vec3 SelectColor(int index);
+        int SelectShootingPowerByColor(glm::vec3 color);
+        void RendShootingLine();
+        int GetTypeByColor(glm::vec3 color);
+        int GetBulletIntervalByColor(glm::vec3 color);
+
 
     protected:
         double cx, cy;
@@ -51,6 +57,8 @@ namespace m1
         glm::vec3 holdingShooterColor;
         glm::vec3 releasedShooterColor;
         MeshWrapper* shootersMatrix[PLACINGS_SIZE][PLACINGS_SIZE];
+        float timedShooting[PLACINGS_SIZE][PLACINGS_SIZE];
         int disapearSteps = DISAPEAR_STEPS;
+        std::vector<MeshWrapper*> line1Bullets;
     };
 }   // namespace m1

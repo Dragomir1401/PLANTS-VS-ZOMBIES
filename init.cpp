@@ -34,9 +34,17 @@ void InitClass::Init()
     camera->Update();
     GetCameraInput()->SetActive(false);
 
+    // Initialize time accumulators matrix
+    for (int i = 0; i < PLACINGS_SIZE; i++)
+	{
+		for (int j = 0; j < PLACINGS_SIZE; j++)
+        {
+            timedShooting[i][j] = 0.0f;
+	    }
+    }
+
     staticScene = new StaticScene();
 }
-
 
 void InitClass::FrameStart()
 {
@@ -155,42 +163,51 @@ void InitClass::RendPlaceHolders()
     }
 }
 
-void InitClass::Shoot(float deltaTimeSeconds)
+void InitClass::Shoot()
 {
-    modelMatrix = glm::mat3(1);
-    modelMatrix *= transformUtils::Translate(500,  500);
-    Mesh* star = shapes::CreateStar("star1", glm::vec3(0, 0, 0), DEFAULT_BULLET_SIZE, glm::vec3(1, 0, 1), true);
-    RenderMesh2D(star, shaders["VertexColor"], modelMatrix);
+    for (int i = 0; i < PLACINGS_SIZE; i++)
+    {
+		for (int j = 0; j < PLACINGS_SIZE; j++)
+		{
+			if (staticScene->getPlacing(i, j)->getTaken() && staticScene->getPlacing(i, j)->getVisibility())
+			{   
+                glm::vec3 color = shootersMatrix[i][j]->getColor();
 
-    modelMatrix = glm::mat3(1);
-    modelMatrix *= transformUtils::Translate(550, 500);
-    Mesh* hex = shapes::CreateHexagon("hex1", glm::vec3(0, 0, 0), DEFAULT_BULLET_SIZE, glm::vec3(1, 0, 1), true);
-    RenderMesh2D(hex, shaders["VertexColor"], modelMatrix);
+                // Create bullets with a timer of 2 seconds
+                if (timedShooting[i][j] > GetBulletIntervalByColor(color))
+                {
+                    MeshWrapper* star = new MeshWrapper(shapes::CreateStar("starShooting", glm::vec3(0, 0, 2), DEFAULT_BULLET_SIZE, color, true));
+                    star->setPositionX(shootersMatrix[i][j]->getPositionX() + DEFAULT_BULLET_SIZE);
+                    star->setPositionY(shootersMatrix[i][j]->getPositionY() + DEFAULT_SQUARE_SIDE / 8);
+                    star->setColor(shootersMatrix[i][j]->getColor());
+                    star->setBulletWasShot(true);
+                    star->setShooterPower(shootersMatrix[i][j]->getShooterPower());
+                    line1Bullets.push_back(star);
 
-    modelMatrix = glm::mat3(1);
-    modelMatrix *= transformUtils::Translate(550, 500);
-    Mesh* inhex = shapes::CreateHexagon("hex2", glm::vec3(5, 2.5, 1), DEFAULT_BULLET_SIZE * 0.8 , glm::vec3(1, 1, 1), true);
-    RenderMesh2D(inhex, shaders["VertexColor"], modelMatrix);
+                    timedShooting[i][j] = 0;
+                }
+            }
+		}
+    }
 }
 
-void InitClass::DisapearAnimation(int row, int col, float deltaTimeSeconds)
+void InitClass::DisapearAnimation(float deltaTimeSeconds, MeshWrapper* mesh, int displacementScale)
 {
     // Make a disapear animation for the shooter in the corresponding placing in the matrix of shooters
-    shootersMatrix[row][col]->setScaleX(shootersMatrix[row][col]->getScaleX() - 0.7f * deltaTimeSeconds);
-    shootersMatrix[row][col]->setScaleY(shootersMatrix[row][col]->getScaleY() - 0.7f * deltaTimeSeconds);
+    mesh->setScaleX(mesh->getScaleX() - 0.7f * deltaTimeSeconds);
+    mesh->setScaleY(mesh->getScaleY() - 0.7f * deltaTimeSeconds);
 
-    if (shootersMatrix[row][col] != nullptr)
+    if (mesh != nullptr)
     {
 		// Rend the shooter at the position of the corresponding placing in matrix
         modelMatrix = glm::mat3(1);
-        modelMatrix *= transformUtils::Translate(shootersMatrix[row][col]->getPositionX(), shootersMatrix[row][col]->getPositionY());
+        modelMatrix *= transformUtils::Translate(mesh->getPositionX(), mesh->getPositionY());
         modelMatrix *= transformUtils::Translate(DEFAULT_SQUARE_SIDE / 2, 0);
-        modelMatrix *= transformUtils::Scale(shootersMatrix[row][col]->getScaleX(), shootersMatrix[row][col]->getScaleY());
+        modelMatrix *= transformUtils::Scale(mesh->getScaleX(), mesh->getScaleY());
         modelMatrix *= transformUtils::Translate(-DEFAULT_SQUARE_SIDE / 2, 0);
-        RenderMesh2D(shootersMatrix[row][col]->getMesh(), shaders["VertexColor"], modelMatrix);
+        RenderMesh2D(mesh->getMesh(), shaders["VertexColor"], modelMatrix);
 	}
 }
-
 
 void InitClass::RendMovingShooter()
 {
@@ -254,6 +271,7 @@ void InitClass::RendActiveShooters()
                     staticScene->getPlacing(i, j)->getColor(),
                     true));
                 shooter->setColor(staticScene->getPlacing(i, j)->getColor());
+                shooter->setShooterPower(SelectShootingPowerByColor(staticScene->getPlacing(i, j)->getColor()));
 
                 modelMatrix = glm::mat3(1);
                 modelMatrix *= transformUtils::Translate(
@@ -272,6 +290,116 @@ void InitClass::RendActiveShooters()
     }
 }
 
+int InitClass::SelectShootingPowerByColor(glm::vec3 color)
+{
+    if (color == glm::vec3(1.0f, 0.5f, 0.0f))
+	{
+		return 1;
+	}
+	else if (color == glm::vec3(0.0f, 0.0f, 1.0f))
+	{
+		return 2;
+	}
+	else if (color == glm::vec3(1.0f, 1.0f, 0.0f))
+	{
+		return 3;
+	}
+	else if (color == glm::vec3(0.6f, 0.0f, 1.0f))
+	{
+		return 4;
+	}
+	else
+	{
+		return 0;
+	}
+ 
+}
+
+void InitClass::RendShootingLine()
+{
+    for (int i = 0; i < line1Bullets.size(); i++)
+    {
+        if (line1Bullets[i]->getBulletWasShot())
+        {
+            // Increment translation of the shooting bullet
+            float newXPosition = line1Bullets[i]->getTranslateX() + currentTimer * 100;
+            line1Bullets[i]->setTranslateX(newXPosition);
+
+            float angularStep = line1Bullets[i]->getAngularStep() + currentTimer * 6;
+            line1Bullets[i]->setAngularStep(angularStep);
+
+            // Start with an identity matrix
+            modelMatrix = glm::mat3(1);
+
+            // Translate to the bullet's position
+            modelMatrix *= transformUtils::Translate(line1Bullets[i]->getPositionX(), line1Bullets[i]->getPositionY());
+
+            // Translate by the increment (newXPosition)
+            modelMatrix *= transformUtils::Translate(newXPosition, 0);
+
+            // Translate to the center of the bullet (assuming width and height can be accessed)
+            modelMatrix *= transformUtils::Translate(DEFAULT_BULLET_SIZE / 2, -DEFAULT_BULLET_SIZE / 8);
+
+            //  Rotate the bullet around its center
+            modelMatrix *= transformUtils::Rotate(angularStep);
+
+            // Translate back from the center
+            modelMatrix *= transformUtils::Translate(-DEFAULT_BULLET_SIZE / 2, DEFAULT_BULLET_SIZE / 8);
+
+            // Render the bullet with the transformations
+            RenderMesh2D(line1Bullets[i]->getMesh(), shaders["VertexColor"], modelMatrix);
+        }
+    }
+}
+
+int InitClass::GetTypeByColor(glm::vec3 color)
+{
+    if (color == glm::vec3(1.0f, 0.5f, 0.0f))
+    {
+        return 0;
+    }
+    else if (color == glm::vec3(0.0f, 0.0f, 1.0f))
+    {
+        return 1;
+    }
+    else if (color == glm::vec3(1.0f, 1.0f, 0.0f))
+    {
+        return 2;
+    }
+    else if (color == glm::vec3(0.6f, 0.0f, 1.0f))
+    {
+        return 3;
+    }
+    else
+    {
+        return 0;
+    }
+}
+
+int InitClass::GetBulletIntervalByColor(glm::vec3 color)
+{
+    if (color == glm::vec3(1.0f, 0.5f, 0.0f))
+    {
+        return 4;
+    }
+    else if (color == glm::vec3(0.0f, 0.0f, 1.0f))
+    {
+        return 3;
+    }
+    else if (color == glm::vec3(1.0f, 1.0f, 0.0f))
+    {
+        return 3;
+    }
+    else if (color == glm::vec3(0.6f, 0.0f, 1.0f))
+    {
+        return 2;
+    }
+    else
+    {
+        return 0;
+    }
+}
+
 void InitClass::RendDisapearingShooters()
 {
     // Rend the disapearing shooters
@@ -284,7 +412,7 @@ void InitClass::RendDisapearingShooters()
                 // Make a disapear animation for the shooter in the corresponding placing in the matrix of shooters
                 if (disapearSteps > 0)
                 {
-                    DisapearAnimation(i, j, currentTimer);
+                    DisapearAnimation(currentTimer, shootersMatrix[i][j], 1);
                     disapearSteps--;
                 }
                 else
@@ -302,15 +430,24 @@ void InitClass::RendDisapearingShooters()
 void InitClass::Update(float deltaTimeSeconds)
 {
     currentTimer = deltaTimeSeconds;
+    for (int i = 0; i < PLACINGS_SIZE; i++)
+	{
+		for (int j = 0; j < PLACINGS_SIZE; j++)
+		{
+			timedShooting[i][j] += deltaTimeSeconds;
+		}
+	}
+
     RendPlacings();
 	RendHitBar();
 	RendShooters();
 	RendHealthPoints();
 	RendPlaceHolders();
-    Shoot(deltaTimeSeconds);
     RendMovingShooter();
     RendActiveShooters();
+    Shoot();
     RendDisapearingShooters();
+    RendShootingLine();
 }
 
 void InitClass::OnMouseBtnPress(int mouseX, int mouseY, int button, int mods)

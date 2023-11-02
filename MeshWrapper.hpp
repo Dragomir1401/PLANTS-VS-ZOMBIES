@@ -23,6 +23,16 @@ public:
 	float getScaleX() const;
 	void setScaleY(float scaleY);
 	float getScaleY() const;
+	void setShooterPower(int shooterPower);
+	int getShooterPower() const;
+	void setBulletWasShot(bool bulletWasShot);
+	bool getBulletWasShot() const;
+	void setTranslateX(float translateX);
+	float getTranslateX() const;
+	void setAngularStep(float angularStep);
+	float getAngularStep() const;
+	void setTimeAccumulator(float timeAccumulator);
+	float getTimeAccumulator() const;
 
 private:
 	Mesh* mesh_;
@@ -34,4 +44,9 @@ private:
 	float positionY_ = 0;
 	float scaleX_ = 1;
 	float scaleY_ = 1;
+	int shooterPower_ = 0;
+	bool bulletWasShot_ = false;
+	float translateX_ = 0;
+	float angularStep_ = 0;
+	float timeAccumulator_ = 0;
 };

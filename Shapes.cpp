@@ -151,7 +151,7 @@ Mesh* shapes::CreateHeart(
 }
 
 Mesh* shapes::CreateStar(
-    const std::string& name, 
+    const std::string& name,
     glm::vec3 leftBottomCorner,
     float length,
     glm::vec3 color,
@@ -173,7 +173,7 @@ Mesh* shapes::CreateStar(
     std::vector<unsigned int> indices = { 1, 2, 4,
                                           1, 3, 5,
                                           1, 4, 0,
-                                        };
+    };
 
     if (!fill) {
         star->SetDrawMode(GL_LINE_LOOP);
