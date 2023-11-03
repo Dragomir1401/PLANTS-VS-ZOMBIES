@@ -134,12 +134,12 @@ int MeshWrapperEnemy::getEnemyHealth() const
 	return enemyHealth_;
 }
 
-void MeshWrapperEnemy::setEnemySpeed(int enemySpeed)
+void MeshWrapperEnemy::setEnemySpeed(float enemySpeed)
 {
 	enemySpeed_ = enemySpeed;
 }
 
-int MeshWrapperEnemy::getEnemySpeed() const
+float MeshWrapperEnemy::getEnemySpeed() const
 {
 	return enemySpeed_;
 }

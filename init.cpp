@@ -52,6 +52,8 @@ void InitClass::Init()
         }
     }
 
+    slowDownTimer = 0.0f;
+
     staticScene = new StaticScene();
     colorUtils = new ColorUtils();
 }
@@ -202,7 +204,7 @@ void InitClass::Shoot()
     }
 }
 
-void InitClass::DisapearAnimation(float deltaTimeSeconds, MeshWrapper* mesh, int displacementScale)
+void InitClass::DisapearAnimationShooter(float deltaTimeSeconds, MeshWrapper* mesh, int displacementScale)
 {
     // Make a disapear animation for the shooter in the corresponding placing in the matrix of shooters
     mesh->setScaleX(mesh->getScaleX() - 0.7f * deltaTimeSeconds);
@@ -359,7 +361,7 @@ void InitClass::RendDisapearingShooters()
                 // Make a disapear animation for the shooter in the corresponding placing in the matrix of shooters
                 if (disapearSteps > 0)
                 {
-                    DisapearAnimation(currentTimer, shootersMatrix[i][j], 1);
+                    DisapearAnimationShooter(currentTimer, shootersMatrix[i][j], 1);
                     disapearSteps--;
                 }
                 else
@@ -376,28 +378,33 @@ void InitClass::RendDisapearingShooters()
 
 void InitClass::GenerateEnemies()
 {
-    for (int i = 0; i < PLACINGS_SIZE; i++)
+    if (slowDownTimer < 3.0f)
     {
-        glm::vec3 color = colorUtils->getRandomColor();
-        glm::vec3 insideColor = colorUtils->getRandomColor();
+		return;
+	}
 
-        // Create bullets with a timer of 2 seconds
-        if (lineEnemyTimer[i][colorUtils->GetTypeByColor(color)] > colorUtils->GetSpawnIntervalByColor(color) + colorUtils->getRandomFloat(13.0f, 15.0f))
-        {
-            MeshWrapperEnemy* hex = new MeshWrapperEnemy(shapes::CreateHexagon("enemy", glm::vec3(0, 0, 2), DEFAULT_BULLET_SIZE, color, insideColor, true));
+    int i = colorUtils->SelectRandomLine();
+    glm::vec3 color = colorUtils->getRandomColor();
+    glm::vec3 insideColor = colorUtils->getRandomColor();
 
-            hex->setPosition((float)(SCREEN_WIDTH), (float)(MATRIX_CORNER_Y + MATRIX_DISPLACEMENT * i + DEFAULT_SQUARE_SIDE / 2));
-            hex->setMovingPosition((float)(SCREEN_WIDTH), (float)(MATRIX_CORNER_Y + MATRIX_DISPLACEMENT * i + DEFAULT_SQUARE_SIDE / 2));
-            hex->setEnemyStarted(true);
-            hex->setColor(color);
-            hex->setEnemyHealth(colorUtils->selectHealthByColor(color));
-            hex->setEnemySpeed(colorUtils->selectSpeedByColor(color));
+    // Create bullets with a timer of 2 seconds
+    if (lineEnemyTimer[i][colorUtils->GetTypeByColor(color)] > colorUtils->GetSpawnIntervalByColor(color) + colorUtils->getRandomFloat(5.0f, 25.0f))
+    {
+        MeshWrapperEnemy* hex = new MeshWrapperEnemy(shapes::CreateHexagon("enemy", glm::vec3(0, 0, 2), DEFAULT_BULLET_SIZE, color, insideColor, true));
 
-            lineEnemies[i].push_back(hex);
+        hex->setPosition((float)(SCREEN_WIDTH), (float)(MATRIX_CORNER_Y + MATRIX_DISPLACEMENT * i + DEFAULT_SQUARE_SIDE / 2));
+        hex->setMovingPosition((float)(SCREEN_WIDTH), (float)(MATRIX_CORNER_Y + MATRIX_DISPLACEMENT * i + DEFAULT_SQUARE_SIDE / 2));
+        hex->setEnemyStarted(true);
+        hex->setColor(color);
+        hex->setEnemyHealth(colorUtils->SelectHealthByColor(color));
+        hex->setEnemySpeed(colorUtils->SelectSpeedByColor(color));
 
-            lineEnemyTimer[i][colorUtils->GetTypeByColor(color)] = 0;
-        }
+        lineEnemies[i].push_back(hex);
+
+        lineEnemyTimer[i][colorUtils->GetTypeByColor(color)] = 0;
     }
+
+    slowDownTimer = 0.0f;
 }
 
 void InitClass::RendEnemies()
@@ -429,6 +436,31 @@ void InitClass::RendEnemies()
 	}
 }
 
+void InitClass::RendShootersCosts()
+{
+    modelMatrix = glm::mat3(1);
+    modelMatrix *= transformUtils::Translate(PLACEHOLDERS_X, PLACEHOLDERS_Y);
+    for (int i = 0; i < PLACEHOLDERS_COUNT; i++)
+    {
+        if (i)
+        {
+            modelMatrix *= transformUtils::Translate(SHOOTER_DISPLACEMENT, 0);
+        }
+        if (staticScene->getPlaceHolders()[i]->getVisibility())
+        {
+            glm::mat3 modelMatrixCopy = modelMatrix;
+            for (int j = 0; j < i + 1; j++)
+            {
+                if (j)
+                {
+                    modelMatrixCopy *= transformUtils::Translate(DEFAULT_STAR_COST_SIZE, 0);
+                }
+                RenderMesh2D(shapes::CreateStar("starCost", glm::vec3(0, 0, 2), DEFAULT_STAR_COST_SIZE, glm::vec3(1.0f, 0.84f, 0.0f), true), shaders["VertexColor"], modelMatrixCopy);
+            }
+        }
+    }
+}
+
 void InitClass::Update(float deltaTimeSeconds)
 {
     currentTimer = deltaTimeSeconds;
@@ -447,6 +479,7 @@ void InitClass::Update(float deltaTimeSeconds)
 			lineEnemyTimer[i][j] += deltaTimeSeconds;
 		}
     }
+    slowDownTimer += deltaTimeSeconds;
 
     RendPlacings();
 	RendHitBar();
@@ -460,6 +493,7 @@ void InitClass::Update(float deltaTimeSeconds)
     RendShootingLine();
     GenerateEnemies();
     RendEnemies();
+    RendShootersCosts();
 }
 
 void InitClass::OnMouseBtnPress(int mouseX, int mouseY, int button, int mods)
@@ -507,7 +541,6 @@ void InitClass::OnMouseBtnPress(int mouseX, int mouseY, int button, int mods)
 		}
 	}
 }
-
 
 void InitClass::OnMouseBtnRelease(int mouseX, int mouseY, int button, int mods)
 {

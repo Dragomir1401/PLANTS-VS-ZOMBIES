@@ -4,7 +4,7 @@
 #include "lab_m1/tema1/StaticScene.hpp"
 #include "lab_m1/tema1/ColorUtils.hpp"
 
-#define DISAPEAR_STEPS 120
+#define DISAPEAR_STEPS 60
 #define TYPES_OF_SHOOTERS 4
 #define SCREEN_WIDTH 1280
 
@@ -34,9 +34,10 @@ namespace m1
         void RendActiveShooters();
         void RendDisapearingShooters();
         void RendEnemies();
+        void RendShootersCosts();
         void GenerateEnemies();
         void Shoot();
-        void DisapearAnimation(float deltaTimeSeconds, MeshWrapper* mesh, int displacementScale);
+        void DisapearAnimationShooter(float deltaTimeSeconds, MeshWrapper* mesh, int displacementScale);
         void RendShootingLine();
 
     protected:
@@ -62,6 +63,6 @@ namespace m1
         std::vector<MeshWrapperBullet*> lineBullets[PLACINGS_SIZE];
         std::vector<MeshWrapperEnemy*> lineEnemies[PLACINGS_SIZE];
         float lineEnemyTimer[PLACINGS_SIZE][TYPES_OF_SHOOTERS];
-
+        float slowDownTimer = 0;
     };
 }   // namespace m1

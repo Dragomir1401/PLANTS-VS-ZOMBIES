@@ -11,9 +11,10 @@ namespace m1
 	public:
 		ColorUtils();
 		~ColorUtils();
-		int selectHealthByColor(glm::vec3 color);
-		int selectSpeedByColor(glm::vec3 color);
+		int SelectHealthByColor(glm::vec3 color);
+		float SelectSpeedByColor(glm::vec3 color);
 		int SelectShootingPowerByColor(glm::vec3 color);
+		int SelectRandomLine();
 		int GetTypeByColor(glm::vec3 color);
 		int GetBulletIntervalByColor(glm::vec3 color);
 		float GetSpawnIntervalByColor(glm::vec3 color);

@@ -8,7 +8,7 @@ m1::ColorUtils::~ColorUtils()
 {
 }
 
-int m1::ColorUtils::selectHealthByColor(glm::vec3 color)
+int m1::ColorUtils::SelectHealthByColor(glm::vec3 color)
     {
         // Determines enemy health by color  
         // purple - big
@@ -38,7 +38,7 @@ int m1::ColorUtils::selectHealthByColor(glm::vec3 color)
 
     }
 
-    int m1::ColorUtils::selectSpeedByColor(glm::vec3 color)
+    float m1::ColorUtils::SelectSpeedByColor(glm::vec3 color)
     {
         // Determines enemy health by color  
         // purple - big
@@ -47,23 +47,23 @@ int m1::ColorUtils::selectHealthByColor(glm::vec3 color)
         // orange - small
         if (color == glm::vec3(1.0f, 0.5f, 0.0f))
         {
-            return 1;
+            return 0.3f;
         }
         else if (color == glm::vec3(0.0f, 0.0f, 1.0f))
         {
-            return 2;
+            return 0.3f;
         }
         else if (color == glm::vec3(1.0f, 1.0f, 0.0f))
         {
-            return 2;
+            return 0.3f;
         }
         else if (color == glm::vec3(0.6f, 0.0f, 1.0f))
         {
-            return 3;
+            return 0.3f;
         }
         else
         {
-            return 0;
+            return 0.3f;
         }
 
     }
@@ -91,6 +91,12 @@ int m1::ColorUtils::selectHealthByColor(glm::vec3 color)
             return 0;
         }
 
+    }
+
+    int m1::ColorUtils::SelectRandomLine()
+    {
+        // Returns a random int between 0 and 3
+        return rand() % PLACINGS_SIZE;
     }
 
     int m1::ColorUtils::GetTypeByColor(glm::vec3 color)
@@ -151,19 +157,19 @@ int m1::ColorUtils::selectHealthByColor(glm::vec3 color)
 
         if (color == glm::vec3(1.0f, 0.5f, 0.0f))
         {
-            return 6.0f;
+            return 10.0f;
         }
         else if (color == glm::vec3(0.0f, 0.0f, 1.0f))
         {
-            return 8.0f;
+            return 14.0f;
         }
         else if (color == glm::vec3(1.0f, 1.0f, 0.0f))
         {
-            return 9.0f;
+            return 15.0f;
         }
         else if (color == glm::vec3(0.6f, 0.0f, 1.0f))
         {
-            return 11.0f;
+            return 16.0f;
         }
         else
         {

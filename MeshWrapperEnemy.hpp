@@ -31,8 +31,8 @@ public:
 	bool getEnemyStarted() const;
 	void setEnemyHealth(int enemyHealth);
 	int getEnemyHealth() const;
-	void setEnemySpeed(int enemySpeed);
-	int getEnemySpeed() const;
+	void setEnemySpeed(float enemySpeed);
+	float getEnemySpeed() const;
 
 private:
 	Mesh* mesh_;
@@ -43,7 +43,7 @@ private:
 	glm::vec2 scale_ = glm::vec2(1, 1);
 	int shooterPower_ = 0;
 	int enemyHealth_ = 0;
-	int enemySpeed_ = 0;
+	float enemySpeed_ = 0;
 	bool enemyStarted_ = false;
 	glm::vec2 translate_ = glm::vec2(0, 0);
 	float angularStep_ = 0;
