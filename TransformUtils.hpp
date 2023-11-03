@@ -22,6 +22,22 @@ namespace transformUtils
 
     }
 
+    inline glm::mat3 Translate(glm::vec2 translate)
+    {
+        // TODO(student): Implement the translation matrix
+        glm::mat3 translateMatrix = glm::mat3(0);
+
+        translateMatrix[2][0] = translate.x;
+        translateMatrix[2][1] = translate.y;
+
+        translateMatrix[0][0] = 1;
+        translateMatrix[1][1] = 1;
+        translateMatrix[2][2] = 1;
+
+        return translateMatrix;
+
+    }
+
     // Scale matrix
     inline glm::mat3 Scale(float scaleX, float scaleY)
     {

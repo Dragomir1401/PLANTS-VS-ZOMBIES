@@ -2,9 +2,11 @@
 
 #include "components/simple_scene.h"
 #include "lab_m1/tema1/StaticScene.hpp"
+#include "lab_m1/tema1/ColorUtils.hpp"
 
 #define DISAPEAR_STEPS 120
 #define TYPES_OF_SHOOTERS 4
+#define SCREEN_WIDTH 1280
 
 namespace m1
 {
@@ -31,14 +33,11 @@ namespace m1
         void RendMovingShooter();
         void RendActiveShooters();
         void RendDisapearingShooters();
+        void RendEnemies();
+        void GenerateEnemies();
         void Shoot();
         void DisapearAnimation(float deltaTimeSeconds, MeshWrapper* mesh, int displacementScale);
-        glm::vec3 SelectColor(int index);
-        int SelectShootingPowerByColor(glm::vec3 color);
         void RendShootingLine();
-        int GetTypeByColor(glm::vec3 color);
-        int GetBulletIntervalByColor(glm::vec3 color);
-
 
     protected:
         double cx, cy;
@@ -48,6 +47,7 @@ namespace m1
         float scaleY = 1.0f;
         float angularStep;
         m1::StaticScene *staticScene;
+        m1::ColorUtils *colorUtils;
         bool pressedCorrectly = false;
         bool releasedCorrectly = false;
         bool holdingShooter = false;
@@ -59,6 +59,9 @@ namespace m1
         MeshWrapper* shootersMatrix[PLACINGS_SIZE][PLACINGS_SIZE];
         float timedShooting[PLACINGS_SIZE][PLACINGS_SIZE];
         int disapearSteps = DISAPEAR_STEPS;
-        std::vector<MeshWrapper*> line1Bullets;
+        std::vector<MeshWrapperBullet*> lineBullets[PLACINGS_SIZE];
+        std::vector<MeshWrapperEnemy*> lineEnemies[PLACINGS_SIZE];
+        float lineEnemyTimer[PLACINGS_SIZE][TYPES_OF_SHOOTERS];
+
     };
 }   // namespace m1

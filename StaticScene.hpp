@@ -5,6 +5,9 @@
 #include "lab_m1/tema1/TransformUtils.hpp"
 #include "lab_m1/tema1/Shapes.hpp"
 #include "lab_m1/tema1/MeshWrapper.hpp"
+#include "lab_m1/tema1/MeshWrapperBullet.hpp"
+#include "lab_m1/tema1/MeshWrapperEnemy.hpp"
+
 #define PLACINGS_SIZE 3
 #define INITIAL_X 30
 #define INITIAL_Y 50
@@ -23,6 +26,7 @@
 #define HEALTH_POINTS_Y 680
 #define DEFAULT_SQUARE_SIDE 100
 #define DEFAULT_BULLET_SIZE 50
+#define DEFAULT_ENEMY_SIZE 50
 #define MATRIX_CORNER_X 120
 #define MATRIX_CORNER_Y 50
 

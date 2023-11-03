@@ -43,7 +43,17 @@ void InitClass::Init()
 	    }
     }
 
+    // Initialise line enemy timer
+    for (int i = 0; i < PLACINGS_SIZE; i++)
+    {
+        for (int j = 0; j < TYPES_OF_SHOOTERS; j++)
+        {
+            lineEnemyTimer[i][j] = 0.0f;
+        }
+    }
+
     staticScene = new StaticScene();
+    colorUtils = new ColorUtils();
 }
 
 void InitClass::FrameStart()
@@ -174,15 +184,16 @@ void InitClass::Shoot()
                 glm::vec3 color = shootersMatrix[i][j]->getColor();
 
                 // Create bullets with a timer of 2 seconds
-                if (timedShooting[i][j] > GetBulletIntervalByColor(color))
+                if (timedShooting[i][j] > colorUtils->GetBulletIntervalByColor(color))
                 {
-                    MeshWrapper* star = new MeshWrapper(shapes::CreateStar("starShooting", glm::vec3(0, 0, 2), DEFAULT_BULLET_SIZE, color, true));
-                    star->setPositionX(shootersMatrix[i][j]->getPositionX() + DEFAULT_BULLET_SIZE);
-                    star->setPositionY(shootersMatrix[i][j]->getPositionY() + DEFAULT_SQUARE_SIDE / 8);
+                    MeshWrapperBullet* star = new MeshWrapperBullet(shapes::CreateStar("starShooting", glm::vec3(0, 0, 2), DEFAULT_BULLET_SIZE, color, true));
+                    star->setPosition(shootersMatrix[i][j]->getPositionX() + DEFAULT_BULLET_SIZE, shootersMatrix[i][j]->getPositionY() + DEFAULT_SQUARE_SIDE / 8);
+                    star->setMovingPosition(shootersMatrix[i][j]->getPositionX() + DEFAULT_BULLET_SIZE, shootersMatrix[i][j]->getPositionY() + DEFAULT_SQUARE_SIDE / 8);
                     star->setColor(shootersMatrix[i][j]->getColor());
                     star->setBulletWasShot(true);
                     star->setShooterPower(shootersMatrix[i][j]->getShooterPower());
-                    line1Bullets.push_back(star);
+
+                    lineBullets[i].push_back(star);
 
                     timedShooting[i][j] = 0;
                 }
@@ -271,7 +282,7 @@ void InitClass::RendActiveShooters()
                     staticScene->getPlacing(i, j)->getColor(),
                     true));
                 shooter->setColor(staticScene->getPlacing(i, j)->getColor());
-                shooter->setShooterPower(SelectShootingPowerByColor(staticScene->getPlacing(i, j)->getColor()));
+                shooter->setShooterPower(colorUtils->SelectShootingPowerByColor(staticScene->getPlacing(i, j)->getColor()));
 
                 modelMatrix = glm::mat3(1);
                 modelMatrix *= transformUtils::Translate(
@@ -290,113 +301,49 @@ void InitClass::RendActiveShooters()
     }
 }
 
-int InitClass::SelectShootingPowerByColor(glm::vec3 color)
-{
-    if (color == glm::vec3(1.0f, 0.5f, 0.0f))
-	{
-		return 1;
-	}
-	else if (color == glm::vec3(0.0f, 0.0f, 1.0f))
-	{
-		return 2;
-	}
-	else if (color == glm::vec3(1.0f, 1.0f, 0.0f))
-	{
-		return 3;
-	}
-	else if (color == glm::vec3(0.6f, 0.0f, 1.0f))
-	{
-		return 4;
-	}
-	else
-	{
-		return 0;
-	}
- 
-}
-
 void InitClass::RendShootingLine()
 {
-    for (int i = 0; i < line1Bullets.size(); i++)
+    for (int line = 0; line < PLACINGS_SIZE; line++)
     {
-        if (line1Bullets[i]->getBulletWasShot())
+        for (int i = 0; i < lineBullets[line].size(); i++)
         {
-            // Increment translation of the shooting bullet
-            float newXPosition = line1Bullets[i]->getTranslateX() + currentTimer * 100;
-            line1Bullets[i]->setTranslateX(newXPosition);
+            if (lineBullets[line][i]->getBulletWasShot())
+            {
+                // Increment translation of the shooting bullet
+                glm::vec2 t = lineBullets[line][i]->getTranslate();
+                t.x += currentTimer * 100;
+                lineBullets[line][i]->setTranslate(t);
 
-            float angularStep = line1Bullets[i]->getAngularStep() + currentTimer * 6;
-            line1Bullets[i]->setAngularStep(angularStep);
+                float angularStep = lineBullets[line][i]->getAngularStep() + currentTimer * 6;
+                lineBullets[line][i]->setAngularStep(angularStep);
 
-            // Start with an identity matrix
-            modelMatrix = glm::mat3(1);
+                // Start with an identity matrix
+                modelMatrix = glm::mat3(1);
 
-            // Translate to the bullet's position
-            modelMatrix *= transformUtils::Translate(line1Bullets[i]->getPositionX(), line1Bullets[i]->getPositionY());
+                // Translate to the bullet's position
+                modelMatrix *= transformUtils::Translate(lineBullets[line][i]->getPosition());
 
-            // Translate by the increment (newXPosition)
-            modelMatrix *= transformUtils::Translate(newXPosition, 0);
+                // Translate by the increment (newXPosition)
+                modelMatrix *= transformUtils::Translate(t);
 
-            // Translate to the center of the bullet (assuming width and height can be accessed)
-            modelMatrix *= transformUtils::Translate(DEFAULT_BULLET_SIZE / 2, -DEFAULT_BULLET_SIZE / 8);
+                // Set moving position
+                glm::vec2 position = lineBullets[line][i]->getMovingPosition();
+                position.x += currentTimer * 100;
+                lineBullets[line][i]->setMovingPosition(position);
 
-            //  Rotate the bullet around its center
-            modelMatrix *= transformUtils::Rotate(angularStep);
+                // Translate to the center of the bullet (assuming width and height can be accessed)
+                modelMatrix *= transformUtils::Translate(DEFAULT_BULLET_SIZE / 2, -DEFAULT_BULLET_SIZE / 9);
 
-            // Translate back from the center
-            modelMatrix *= transformUtils::Translate(-DEFAULT_BULLET_SIZE / 2, DEFAULT_BULLET_SIZE / 8);
+                //  Rotate the bullet around its center
+                modelMatrix *= transformUtils::Rotate(angularStep);
 
-            // Render the bullet with the transformations
-            RenderMesh2D(line1Bullets[i]->getMesh(), shaders["VertexColor"], modelMatrix);
+                // Translate back from the center
+                modelMatrix *= transformUtils::Translate(-DEFAULT_BULLET_SIZE / 2, DEFAULT_BULLET_SIZE / 9);
+
+                // Render the bullet with the transformations
+                RenderMesh2D(lineBullets[line][i]->getMesh(), shaders["VertexColor"], modelMatrix);
+            }
         }
-    }
-}
-
-int InitClass::GetTypeByColor(glm::vec3 color)
-{
-    if (color == glm::vec3(1.0f, 0.5f, 0.0f))
-    {
-        return 0;
-    }
-    else if (color == glm::vec3(0.0f, 0.0f, 1.0f))
-    {
-        return 1;
-    }
-    else if (color == glm::vec3(1.0f, 1.0f, 0.0f))
-    {
-        return 2;
-    }
-    else if (color == glm::vec3(0.6f, 0.0f, 1.0f))
-    {
-        return 3;
-    }
-    else
-    {
-        return 0;
-    }
-}
-
-int InitClass::GetBulletIntervalByColor(glm::vec3 color)
-{
-    if (color == glm::vec3(1.0f, 0.5f, 0.0f))
-    {
-        return 4;
-    }
-    else if (color == glm::vec3(0.0f, 0.0f, 1.0f))
-    {
-        return 3;
-    }
-    else if (color == glm::vec3(1.0f, 1.0f, 0.0f))
-    {
-        return 3;
-    }
-    else if (color == glm::vec3(0.6f, 0.0f, 1.0f))
-    {
-        return 2;
-    }
-    else
-    {
-        return 0;
     }
 }
 
@@ -427,6 +374,61 @@ void InitClass::RendDisapearingShooters()
 
 }
 
+void InitClass::GenerateEnemies()
+{
+    for (int i = 0; i < PLACINGS_SIZE; i++)
+    {
+        glm::vec3 color = colorUtils->getRandomColor();
+        glm::vec3 insideColor = colorUtils->getRandomColor();
+
+        // Create bullets with a timer of 2 seconds
+        if (lineEnemyTimer[i][colorUtils->GetTypeByColor(color)] > colorUtils->GetSpawnIntervalByColor(color) + colorUtils->getRandomFloat(13.0f, 15.0f))
+        {
+            MeshWrapperEnemy* hex = new MeshWrapperEnemy(shapes::CreateHexagon("enemy", glm::vec3(0, 0, 2), DEFAULT_BULLET_SIZE, color, insideColor, true));
+
+            hex->setPosition((float)(SCREEN_WIDTH), (float)(MATRIX_CORNER_Y + MATRIX_DISPLACEMENT * i + DEFAULT_SQUARE_SIDE / 2));
+            hex->setMovingPosition((float)(SCREEN_WIDTH), (float)(MATRIX_CORNER_Y + MATRIX_DISPLACEMENT * i + DEFAULT_SQUARE_SIDE / 2));
+            hex->setEnemyStarted(true);
+            hex->setColor(color);
+            hex->setEnemyHealth(colorUtils->selectHealthByColor(color));
+            hex->setEnemySpeed(colorUtils->selectSpeedByColor(color));
+
+            lineEnemies[i].push_back(hex);
+
+            lineEnemyTimer[i][colorUtils->GetTypeByColor(color)] = 0;
+        }
+    }
+}
+
+void InitClass::RendEnemies()
+{
+    for (int line = 0; line < PLACINGS_SIZE; line++)
+    {
+        for (int i = 0; i < lineEnemies[line].size(); i++)
+        {
+            if (lineEnemies[line][i]->getEnemyStarted())
+            {
+				// Increment translation of the moving enemy
+				glm::vec2 t = lineEnemies[line][i]->getTranslate();
+				t.x -= currentTimer * 100 * lineEnemies[line][i]->getEnemySpeed();
+				lineEnemies[line][i]->setTranslate(t);
+    
+				modelMatrix = glm::mat3(1);
+				modelMatrix *= transformUtils::Translate(lineEnemies[line][i]->getPosition());
+				modelMatrix *= transformUtils::Translate(t);
+
+				// Set moving position
+				glm::vec2 position = lineEnemies[line][i]->getMovingPosition();
+				position.x -= currentTimer * 100 * lineEnemies[line][i]->getEnemySpeed();
+				lineEnemies[line][i]->setMovingPosition(position);
+
+				// Render the bullet with the transformations
+				RenderMesh2D(lineEnemies[line][i]->getMesh(), shaders["VertexColor"], modelMatrix);
+			}
+		}
+	}
+}
+
 void InitClass::Update(float deltaTimeSeconds)
 {
     currentTimer = deltaTimeSeconds;
@@ -438,6 +440,14 @@ void InitClass::Update(float deltaTimeSeconds)
 		}
 	}
 
+    for (int i = 0; i < PLACINGS_SIZE; i++)
+    {
+        for (int j = 0; j < TYPES_OF_SHOOTERS; j++)
+        {
+			lineEnemyTimer[i][j] += deltaTimeSeconds;
+		}
+    }
+
     RendPlacings();
 	RendHitBar();
 	RendShooters();
@@ -448,6 +458,8 @@ void InitClass::Update(float deltaTimeSeconds)
     Shoot();
     RendDisapearingShooters();
     RendShootingLine();
+    GenerateEnemies();
+    RendEnemies();
 }
 
 void InitClass::OnMouseBtnPress(int mouseX, int mouseY, int button, int mods)
@@ -466,7 +478,7 @@ void InitClass::OnMouseBtnPress(int mouseX, int mouseY, int button, int mods)
         if (mouseX >= shooterBeginX && mouseX <= shooterEndX &&
             mouseY >= shooterBeginY && mouseY <= shooterEndY)
         {
-            holdingShooterColor = SelectColor(i);
+            holdingShooterColor = colorUtils->SelectColor(i);
             pressedCorrectly = true;
         }
     }
@@ -496,23 +508,6 @@ void InitClass::OnMouseBtnPress(int mouseX, int mouseY, int button, int mods)
 	}
 }
 
-glm::vec3 InitClass::SelectColor(int index)
-{
-    switch (index)
-    {
-	case 0:
-		return  glm::vec3(1.0f, 0.5f, 0.0f);
-	case 1:
-		return glm::vec3(0.0f, 0.0f, 1.0f);
-	case 2:
-		return glm::vec3(1.0f, 1.0f, 0.0f);
-	case 3:
-		return glm::vec3(0.6f, 0.0f, 1.0f);
-	default:
-		return glm::vec3(0, 0, 0);
-	}
-
-}
 
 void InitClass::OnMouseBtnRelease(int mouseX, int mouseY, int button, int mods)
 {

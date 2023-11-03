@@ -185,20 +185,36 @@ Mesh* shapes::CreateStar(
 
 Mesh* shapes::CreateHexagon(
     const std::string& name,
-    glm::vec3 leftBottomCorner,
+    glm::vec3 center,
     float length,
-    glm::vec3 color,
+    glm::vec3 colorOutside,
+    glm::vec3 colorInside,
     bool fill)
 {
-    glm::vec3 corner = leftBottomCorner;
+    glm::vec3 c = center;
+    int r = length / 2;
+    glm::vec3 c1 = center;
+    c1.z = 3;
+    float scale = 1.5;
+
     std::vector<VertexFormat> vertices =
     {
-        VertexFormat(corner, color),
-        VertexFormat(corner + glm::vec3(0, (double)length / 2, 0), color),
-        VertexFormat(corner + glm::vec3((double)length / 2, (double)13 / 16 * length, 0), color),
-        VertexFormat(corner + glm::vec3(length, (double)length / 2, 0), color),
-        VertexFormat(corner + glm::vec3(length, 0, 0), color),
-        VertexFormat(corner + glm::vec3((double)length / 2, -(double)5 / 16 * length, 0), color),
+        VertexFormat(c, colorOutside),
+        VertexFormat(c + glm::vec3(-r, (double)-3 / 5 * r, 0), colorOutside),
+        VertexFormat(c + glm::vec3(-r, (double)3 / 5 * r, 0), colorOutside),
+        VertexFormat(c + glm::vec3(0, r, 0), colorOutside),
+        VertexFormat(c + glm::vec3(r, (double)3 / 5 * r, 0), colorOutside),
+        VertexFormat(c + glm::vec3(r, (double)-3 / 5 * r, 0), colorOutside),
+        VertexFormat(c + glm::vec3(0, -r, 0), colorOutside),
+
+        VertexFormat(c1, colorInside),
+        VertexFormat(c1 + glm::vec3(-r / 2 * scale, (double)-1 / 5 * r * scale, 0), colorInside),
+        VertexFormat(c1 + glm::vec3(-r / 2 * scale, (double)1 / 5 * r * scale, 0), colorInside),
+        VertexFormat(c1 + glm::vec3(0, r / 2 * scale, 0), colorInside),
+        VertexFormat(c1 + glm::vec3(r / 2 * scale, (double)1 / 5 * r * scale, 0), colorInside),
+        VertexFormat(c1 + glm::vec3(r / 2 * scale, (double)-1 / 5 * r * scale, 0), colorInside),
+        VertexFormat(c1 + glm::vec3(0, -r / 2 * scale, 0), colorInside),
+
     };
 
 
@@ -207,6 +223,15 @@ Mesh* shapes::CreateHexagon(
                                           0, 2, 3,
                                           0, 3, 4,
                                           0, 4, 5,
+                                          0, 5, 6,
+                                          0, 6, 1,
+
+                                          7, 8, 9,
+                                          7, 9, 10,
+                                          7, 10, 11,
+                                          7, 11, 12,
+                                          7, 12, 13,
+                                          7, 13, 8
                                         };
 
     if (!fill) {
