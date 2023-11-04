@@ -122,12 +122,35 @@ void InitClass::RendShooters()
 {
     modelMatrix = glm::mat3(1);
     modelMatrix *= transformUtils::Translate(PLACEHOLDERS_X + DEFAULT_SQUARE_SIDE / 8, PLACEHOLDERS_Y + DEFAULT_SQUARE_SIDE / 2);
-    for (int i = 0; i < PLACEHOLDERS_COUNT; i++)
+    bool loweredLine = false;
+    int lastRow = 0;
+
+    for (int i = 0; i < PLACEHOLDERS_COUNT_TOTAL; i++)
     {
+        int row = i / PLACEHOLDERS_COUNT;
+        if (row != lastRow)
+        {
+            loweredLine = false;
+            lastRow = row;
+        }
+
         if (i)
         {
             modelMatrix *= transformUtils::Translate(SHOOTER_DISPLACEMENT, 0);
         }
+
+        if (i >= PLACEHOLDERS_COUNT)
+        {
+            modelMatrix *= transformUtils::Translate(DEFAULT_SQUARE_SIDE * SHOOTER_SCALE / 1.6, 0);
+        }
+
+        if (!loweredLine && row)
+        {
+            modelMatrix *= transformUtils::Translate(0, -MATRIX_DISPLACEMENT);
+            modelMatrix *= transformUtils::Translate(-SHOOTER_DISPLACEMENT * PLACEHOLDERS_COUNT, 0);
+            loweredLine = true;
+        }
+
         if (staticScene->getShooters()[i]->getVisibility())
         {
             RenderMesh2D(staticScene->getShooters()[i]->getMesh(), shaders["VertexColor"], modelMatrix);
@@ -172,12 +195,30 @@ void InitClass::RendPlaceHolders()
 {
     modelMatrix = glm::mat3(1);
     modelMatrix *= transformUtils::Translate(PLACEHOLDERS_X, PLACEHOLDERS_Y);
-    for (int i = 0; i < PLACEHOLDERS_COUNT; i++)
+    bool loweredLine = false;
+    int lastRow = 0;
+
+    for (int i = 0; i < PLACEHOLDERS_COUNT_TOTAL; i++)
     {
+        int row = i / PLACEHOLDERS_COUNT;
+        if (row != lastRow)
+        {
+            loweredLine = false;
+            lastRow = row;
+        }
+
         if (i)
         {
             modelMatrix *= transformUtils::Translate(SHOOTER_DISPLACEMENT, 0);
         }
+
+        if (!loweredLine && row)
+        {
+            modelMatrix *= transformUtils::Translate(0, -MATRIX_DISPLACEMENT);
+            modelMatrix *= transformUtils::Translate(-SHOOTER_DISPLACEMENT * PLACEHOLDERS_COUNT, 0);
+            loweredLine = true;
+        }
+
         if (staticScene->getPlaceHolders()[i]->getVisibility())
         {
             RenderMesh2D(staticScene->getPlaceHolders()[i]->getMesh(), shaders["VertexColor"], modelMatrix);
@@ -197,7 +238,7 @@ void InitClass::Shoot()
     {
 		for (int j = 0; j < PLACINGS_SIZE; j++)
 		{
-			if (staticScene->getPlacing(i, j)->getTaken() && staticScene->getPlacing(i, j)->getVisibility())
+			if (staticScene->getPlacing(i, j)->getTaken() && staticScene->getPlacing(i, j)->getVisibility() && !shootersMatrix[i][j]->getIsSpawner())
 			{   
                 glm::vec3 color = shootersMatrix[i][j]->getColor();
 
@@ -291,15 +332,25 @@ void InitClass::RendMovingShooter()
         // Set mouse coordinates to world coordinates
         mouseY = window->GetResolution().y - mouseY;
 
-        for (int i = 0; i < PLACEHOLDERS_COUNT; i++)
         {
             if (pressedCorrectly && !releasedCorrectly)
             {
                 // Rend the shooter at the mouse coordinates
-                Mesh* shooter = shapes::CreateShooter("shooterMouse", glm::vec3(0, 0, 2), DEFAULT_SQUARE_SIDE * SHOOTER_SCALE, holdingShooterColor, true);
-                modelMatrix = glm::mat3(1);
-                modelMatrix *= transformUtils::Translate((float)mouseX, (float)mouseY);
-                RenderMesh2D(shooter, shaders["VertexColor"], modelMatrix);
+                if (!isSimpleShooter)
+                {
+                    Mesh* mesh = shapes::CreateSpawner("shooterMouse", glm::vec3(0, 0, 2), DEFAULT_SQUARE_SIDE * SHOOTER_SCALE, holdingShooterColor, glm::vec3(1.0f, 1.0f, 1.0f), true);
+                    modelMatrix = glm::mat3(1);
+                    modelMatrix *= transformUtils::Translate((float)mouseX, (float)mouseY);
+                    RenderMesh2D(mesh, shaders["VertexColor"], modelMatrix);
+                }
+                else
+                {
+                    Mesh* mesh = shapes::CreateShooter("shooterMouse", glm::vec3(0, 0, 2), DEFAULT_SQUARE_SIDE * SHOOTER_SCALE, holdingShooterColor, true);
+                    modelMatrix = glm::mat3(1);
+                    modelMatrix *= transformUtils::Translate((float)mouseX, (float)mouseY);
+                    RenderMesh2D(mesh, shaders["VertexColor"], modelMatrix);
+                }
+                
             }
         }
     }
@@ -330,18 +381,39 @@ void InitClass::CreateActiveShooters()
         {
             if (staticScene->getPlacing(i, j)->getTaken() && staticScene->getPlacing(i, j)->getVisibility() && !createdShooter[i][j])
             {
-                MeshWrapperShooter* shooter = new MeshWrapperShooter(
-                    shapes::CreateShooter("shooterActive",
-                    glm::vec3(0, 0, 2),
-                    DEFAULT_SQUARE_SIDE * SHOOTER_SCALE, 
-                    staticScene->getPlacing(i, j)->getColor(),
-                    true));
-                shooter->setColor(staticScene->getPlacing(i, j)->getColor());
-                shooter->setShooterPower(colorUtils->SelectShootingPowerByColor(staticScene->getPlacing(i, j)->getColor()));
+                MeshWrapperShooter* shooter = nullptr;
+                if (isSimpleShooter)
+                {
+                    shooter = new MeshWrapperShooter(
+                        shapes::CreateShooter("shooterActive",
+                            glm::vec3(0, 0, 2),
+                            DEFAULT_SQUARE_SIDE * SHOOTER_SCALE,
+                            staticScene->getPlacing(i, j)->getColor(),
+                            true));
+                    shooter->setColor(staticScene->getPlacing(i, j)->getColor());
+                    shooter->setShooterPower(colorUtils->SelectShootingPowerByColor(staticScene->getPlacing(i, j)->getColor()));
+                } 
+                else
+                {
+                    shooter = new MeshWrapperShooter(
+                        shapes::CreateSpawner("shooterActive",
+                            glm::vec3(0, 0, 2),
+                            DEFAULT_SQUARE_SIDE * SHOOTER_SCALE,
+                            staticScene->getPlacing(i, j)->getColor(),
+                            glm::vec3(1.0f, 1.0f, 1.0f),
+                            true));
+                    shooter->setColor(staticScene->getPlacing(i, j)->getColor());
+                    shooter->setShooterPower(colorUtils->SelectShootingPowerByColor(staticScene->getPlacing(i, j)->getColor()));
+                    shooter->setIsSpawner(true);
+                }
 
                 // Set position of the shooter
                 glm::vec2 position;
                 position.x = (float)(MATRIX_CORNER_X + j * MATRIX_DISPLACEMENT + DEFAULT_SQUARE_SIDE / 8);
+                if (!isSimpleShooter)
+                {
+                    position.x += DEFAULT_SQUARE_SIDE / 3;
+                }
                 position.y = (float)(MATRIX_CORNER_Y + MATRIX_DISPLACEMENT * i + DEFAULT_SQUARE_SIDE / 2);
                 shooter->setPosition(position);
                 shooter->setMovingPosition(position);
@@ -710,6 +782,23 @@ void InitClass::DetectShooterEnemyCollision()
 	}
 }
 
+bool InitClass::SpawnerIsOnTheTable()
+{
+    // Checks if there is a spawner on the table shootersMatrix
+    for (int i = 0; i < PLACINGS_SIZE; i++)
+    {
+        for (int j = 0; j < PLACINGS_SIZE; j++)
+        {
+            if (staticScene->getPlacing(i, j)->getTaken() && staticScene->getPlacing(i, j)->getVisibility() && shootersMatrix[i][j]->getIsSpawner())
+            {
+				return true;
+            }
+        }
+    }
+
+    return false;
+}
+
 void InitClass::RendDisapearingShooters()
 {
     // Rend the disapearing shooters
@@ -811,12 +900,30 @@ void InitClass::RendShootersCosts()
 {
     modelMatrix = glm::mat3(1);
     modelMatrix *= transformUtils::Translate(PLACEHOLDERS_X, PLACEHOLDERS_Y);
-    for (int i = 0; i < PLACEHOLDERS_COUNT; i++)
+    int lastRow = 0;
+    bool loweredLine = false;
+
+    for (int i = 0; i < PLACEHOLDERS_COUNT_TOTAL; i++)
     {
+        int row = i / PLACEHOLDERS_COUNT;
+        if (row != lastRow)
+        {
+            loweredLine = false;
+            lastRow = row;
+        }
+
         if (i)
         {
             modelMatrix *= transformUtils::Translate(SHOOTER_DISPLACEMENT, 0);
         }
+
+        if (!loweredLine && row)
+        {
+            modelMatrix *= transformUtils::Translate(0, -MATRIX_DISPLACEMENT);
+            modelMatrix *= transformUtils::Translate(-SHOOTER_DISPLACEMENT * PLACEHOLDERS_COUNT, 0);
+            loweredLine = true;
+        }
+
         if (staticScene->getPlaceHolders()[i]->getVisibility())
         {
             glm::mat3 modelMatrixCopy = modelMatrix;
@@ -874,10 +981,14 @@ void InitClass::Update(float deltaTimeSeconds)
     DetectBulletEnemyCollision();
     RendDisapearingEnemies();
     RendStartingCoins();
-    GenerateRandomCoins();
-    RendRandomCoins();
-    DetectShooterEnemyCollision();
 
+    if (SpawnerIsOnTheTable())
+    {
+        GenerateRandomCoins();
+        RendRandomCoins();
+    }
+
+    DetectShooterEnemyCollision();
     RendDisapearingShooters();
 }
 
@@ -899,8 +1010,27 @@ void InitClass::OnMouseBtnPress(int mouseX, int mouseY, int button, int mods)
         {
             holdingShooterColor = colorUtils->SelectColor(i);
             pressedCorrectly = true;
+            isSimpleShooter = true;
         }
     }
+
+    for (int i = 0; i < PLACEHOLDERS_COUNT_TOTAL - PLACEHOLDERS_COUNT; i++)
+    {
+		double shooterBeginX = PLACEHOLDERS_X + DEFAULT_SQUARE_SIDE / 8 + SHOOTER_DISPLACEMENT * i;
+		double shooterEndX = shooterBeginX + DEFAULT_SQUARE_SIDE * SHOOTER_SCALE;
+
+		double shooterBeginY = PLACEHOLDERS_Y + DEFAULT_SQUARE_SIDE / 4 - MATRIX_DISPLACEMENT;
+		double shooterEndY = PLACEHOLDERS_Y + (double)3 / 4 * DEFAULT_SQUARE_SIDE - MATRIX_DISPLACEMENT;
+
+        if (mouseX >= shooterBeginX && mouseX <= shooterEndX &&
+            mouseY >= shooterBeginY && mouseY <= shooterEndY)
+        {
+			holdingShooterColor = colorUtils->SelectColor(i + PLACEHOLDERS_COUNT);
+			pressedCorrectly = true;
+            isSimpleShooter = false;
+		}
+    }
+
 
     // If one of placings are pressed with right click, set the corresponding placing as not taken
     if (window->MouseHold(GLFW_MOUSE_BUTTON_RIGHT))
@@ -989,5 +1119,3 @@ void InitClass::OnMouseBtnRelease(int mouseX, int mouseY, int button, int mods)
         }
     }
 }
-
-

@@ -50,6 +50,7 @@ namespace m1
         void GenerateRandomCoins();
         void RendRandomCoins();
         void DetectShooterEnemyCollision();
+        bool SpawnerIsOnTheTable();
 
     protected:
         double cx, cy;
@@ -62,6 +63,7 @@ namespace m1
         m1::ColorUtils *colorUtils;
         bool pressedCorrectly = false;
         bool releasedCorrectly = false;
+        bool isSimpleShooter = false;
         bool holdingShooter = false;
         int releaseRow = -1;
         int releaseCol = -1;

@@ -100,6 +100,7 @@ int m1::ColorUtils::GetShooterCostByColor(glm::vec3 color)
     // yellow - 3
     // blue - 2
     // orange - 1
+    // gold - 5
     if (color == glm::vec3(1.0f, 0.5f, 0.0f))
     {
 		return 1;
@@ -116,6 +117,10 @@ int m1::ColorUtils::GetShooterCostByColor(glm::vec3 color)
     {
 		return 4;
 	}
+    else if (color == glm::vec3(1.0f, 0.85f, 0.5f))
+    {
+        return 5;
+    }
     else
     {
 		return 0;
@@ -248,6 +253,8 @@ glm::vec3 m1::ColorUtils::SelectColor(int index)
         return glm::vec3(1.0f, 1.0f, 0.0f);
     case 3:
         return glm::vec3(0.6f, 0.0f, 1.0f);
+    case 4:
+        return glm::vec3(1.0f, 0.85f, 0.5f);
     default:
         return glm::vec3(0, 0, 0);
     }

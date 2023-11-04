@@ -39,3 +39,13 @@ bool MeshWrapperShooter::getCostWasPaid() const
 {
 	return costWasPaid_;
 }
+
+void MeshWrapperShooter::setIsSpawner(bool isSpawner)
+{
+	isSpawner_ = isSpawner;
+}
+
+bool MeshWrapperShooter::getIsSpawner() const
+{
+	return isSpawner_;	
+}

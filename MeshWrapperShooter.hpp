@@ -15,9 +15,12 @@ public:
 	int getDisappearSteps() const;
 	void setCostWasPaid(bool costWasPaid);
 	bool getCostWasPaid() const;
+	void setIsSpawner(bool isSpawner);
+	bool getIsSpawner() const;
 
 private:
 	int shooterPower_ = 0;
 	int disappearSteps_ = DISAPEAR_STEPS;
 	bool costWasPaid_ = false;
+	bool isSpawner_ = false;
 };

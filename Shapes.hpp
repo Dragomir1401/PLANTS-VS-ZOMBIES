@@ -15,4 +15,5 @@ namespace shapes
     Mesh* CreateHeart(const std::string& name, glm::vec3 leftBottomCorner, float length, glm::vec3 color, bool fill = false);
     Mesh* CreateStar(const std::string& name, glm::vec3 leftBottomCorner, float length, glm::vec3 color, bool fill = false);
     Mesh* CreateHexagon(const std::string& name, glm::vec3 leftBottomCorner, float length, glm::vec3 colorInside, glm::vec3 colorOutside, bool fill = false);
-}
+    Mesh* CreateSpawner(const std::string& name, glm::vec3 center, float length, glm::vec3 colorOutside, glm::vec3 colorInisde, bool fill);
+} // namespace shapes
