@@ -13,8 +13,11 @@ public:
 	int getShooterPower() const;
 	void setDisappearSteps(int disappearSteps);
 	int getDisappearSteps() const;
+	void setCostWasPaid(bool costWasPaid);
+	bool getCostWasPaid() const;
 
 private:
 	int shooterPower_ = 0;
 	int disappearSteps_ = DISAPEAR_STEPS;
+	bool costWasPaid_ = false;
 };

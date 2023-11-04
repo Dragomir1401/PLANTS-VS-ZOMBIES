@@ -30,7 +30,7 @@ namespace m1
         void RendHealthPoints();
         void RendPlaceHolders();
         void RendMovingShooter();
-        void RendActiveShooters();
+        void CreateActiveShooters();
         void RendDisapearingShooters();
         void RendEnemies();
         void RendShootersCosts();
@@ -42,6 +42,8 @@ namespace m1
         void DetectBulletEnemyCollision();
         bool LineContainsEnemyOfColor(int line, glm::vec3 color);
         void RendDisapearingEnemies();
+        void RendStartingCoins();
+        void RendActiveShooters();
 
     protected:
         double cx, cy;
@@ -66,8 +68,10 @@ namespace m1
         std::vector<MeshWrapperEnemy*> lineEnemies[PLACINGS_SIZE];
         std::vector<MeshWrapperEnemy*> disapearingEnemies[PLACINGS_SIZE];
         float lineEnemyTimer[PLACINGS_SIZE][TYPES_OF_SHOOTERS];
+        bool createdShooter[PLACINGS_SIZE][PLACINGS_SIZE] = { false };
         float slowDownTimer = 0;
         float healthPointSpawnRate = 0;
         int nrOfHealthPoints = HEALTH_POINTS_COUNT;
+        int nrOfCoins = DEFAULT_COINS_COUNT;
     };
 }   // namespace m1

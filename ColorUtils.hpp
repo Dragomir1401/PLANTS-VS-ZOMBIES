@@ -14,6 +14,7 @@ namespace m1
 		int SelectHealthByColor(glm::vec3 color);
 		float SelectSpeedByColor(glm::vec3 color);
 		int SelectShootingPowerByColor(glm::vec3 color);
+		int GetShooterCostByColor(glm::vec3 color);
 		int SelectRandomLine();
 		int GetTypeByColor(glm::vec3 color);
 		int GetBulletIntervalByColor(glm::vec3 color);

@@ -284,14 +284,14 @@ void InitClass::RendMovingShooter()
     }
 }
 
-void InitClass::RendActiveShooters()
+void InitClass::CreateActiveShooters()
 {
-    // Rend the active shooters
+    // Create the active shooters
     for (int i = 0; i < PLACINGS_SIZE; i++)
     {
         for (int j = 0; j < PLACINGS_SIZE; j++)
         {
-            if (staticScene->getPlacing(i, j)->getTaken() && staticScene->getPlacing(i, j)->getVisibility())
+            if (staticScene->getPlacing(i, j)->getTaken() && staticScene->getPlacing(i, j)->getVisibility() && !createdShooter[i][j])
             {
                 MeshWrapperShooter* shooter = new MeshWrapperShooter(
                     shapes::CreateShooter("shooterActive",
@@ -302,12 +302,6 @@ void InitClass::RendActiveShooters()
                 shooter->setColor(staticScene->getPlacing(i, j)->getColor());
                 shooter->setShooterPower(colorUtils->SelectShootingPowerByColor(staticScene->getPlacing(i, j)->getColor()));
 
-                modelMatrix = glm::mat3(1);
-                modelMatrix *= transformUtils::Translate(
-                    (float)(MATRIX_CORNER_X + j * MATRIX_DISPLACEMENT + DEFAULT_SQUARE_SIDE / 8),
-                    (float)(MATRIX_CORNER_Y + MATRIX_DISPLACEMENT * i + DEFAULT_SQUARE_SIDE / 2));
-                RenderMesh2D(shooter->getMesh(), shaders["VertexColor"], modelMatrix);
-
                 // Set position of the shooter
                 glm::vec2 position;
                 position.x = (float)(MATRIX_CORNER_X + j * MATRIX_DISPLACEMENT + DEFAULT_SQUARE_SIDE / 8);
@@ -317,6 +311,12 @@ void InitClass::RendActiveShooters()
 
                 // Add the shooter in the matrix of shooters
                 shootersMatrix[i][j] = shooter;
+
+                // Set the corresponding placing as taken
+                staticScene->getPlacing(i, j)->setTaken(true);
+
+                // Set the shooter as created
+                createdShooter[i][j] = true;
             }
         }
     }
@@ -498,6 +498,74 @@ void InitClass::RendDisapearingEnemies()
 	}
 }
 
+void InitClass::RendStartingCoins()
+{
+    // Rends 5 coins at the beginning of the game under the health points
+    modelMatrix = glm::mat3(1);
+    modelMatrix *= transformUtils::Translate(HEALTH_POINTS_X, HEALTH_POINTS_Y - COINS_Y_DISPLACEMENT);
+    bool loweredLine = false;
+    int lastRow = 0;
+    for (int i = 0; i < nrOfCoins; i++)
+    {
+        int row = i / COINS_COUNT_PER_ROW;
+        if (row != lastRow)
+        {
+            loweredLine = false;
+			lastRow = row;
+        }
+
+        if (i)
+        {
+            modelMatrix *= transformUtils::Translate(DEFAULT_STAR_COST_SIZE, 0);
+        }
+
+        if (!loweredLine && row)
+        {
+            modelMatrix *= transformUtils::Translate(0, -DEFAULT_STAR_COST_SIZE);
+            modelMatrix *= transformUtils::Translate(-DEFAULT_STAR_COST_SIZE * COINS_COUNT_PER_ROW, 0);
+            loweredLine = true;
+		}
+
+        RenderMesh2D(shapes::CreateStar("starCost", glm::vec3(0, 0, 2), DEFAULT_STAR_COST_SIZE, glm::vec3(1.0f, 0.84f, 0.0f), true),
+                     shaders["VertexColor"],
+                     modelMatrix);
+    }
+}
+
+void InitClass::RendActiveShooters()
+{
+    // Rend the active shooters
+    for (int i = 0; i < PLACINGS_SIZE; i++)
+    {
+        for (int j = 0; j < PLACINGS_SIZE; j++)
+        {
+            if (staticScene->getPlacing(i, j)->getTaken() && staticScene->getPlacing(i, j)->getVisibility() && createdShooter[i][j])
+            {
+                modelMatrix = glm::mat3(1);
+                modelMatrix *= transformUtils::Translate(shootersMatrix[i][j]->getPosition());
+                RenderMesh2D(shootersMatrix[i][j]->getMesh(), shaders["VertexColor"], modelMatrix);
+
+                // Decrease coins by cost of shooter
+                if (!shootersMatrix[i][j]->getCostWasPaid())
+                {
+                    if (nrOfCoins >= colorUtils->GetShooterCostByColor(staticScene->getPlacing(i, j)->getColor()))
+                    {
+                        nrOfCoins -= colorUtils->GetShooterCostByColor(staticScene->getPlacing(i, j)->getColor());
+                        shootersMatrix[i][j]->setCostWasPaid(true);
+                    }
+                    else
+                    {
+                        // If we don't have enough coins, remove the shooter from the matrix of shooters
+                        staticScene->getPlacing(i, j)->setTaken(false);
+                        createdShooter[i][j] = false;
+                        shootersMatrix[i][j] = nullptr;
+                    }
+                }
+            }
+        }
+    }
+}
+
 void InitClass::RendDisapearingShooters()
 {
     // Rend the disapearing shooters
@@ -613,7 +681,9 @@ void InitClass::RendShootersCosts()
                 {
                     modelMatrixCopy *= transformUtils::Translate(DEFAULT_STAR_COST_SIZE, 0);
                 }
-                RenderMesh2D(shapes::CreateStar("starCost", glm::vec3(0, 0, 2), DEFAULT_STAR_COST_SIZE, glm::vec3(1.0f, 0.84f, 0.0f), true), shaders["VertexColor"], modelMatrixCopy);
+                RenderMesh2D(shapes::CreateStar("starCost", glm::vec3(0, 0, 2), DEFAULT_STAR_COST_SIZE, glm::vec3(1.0f, 0.84f, 0.0f), true),
+                             shaders["VertexColor"],
+                             modelMatrixCopy);
             }
         }
     }
@@ -646,6 +716,7 @@ void InitClass::Update(float deltaTimeSeconds)
 	RendHealthPoints();
 	RendPlaceHolders();
     RendMovingShooter();
+    CreateActiveShooters();
     RendActiveShooters();
     Shoot();
     RendDisapearingShooters();
@@ -656,6 +727,7 @@ void InitClass::Update(float deltaTimeSeconds)
     DetectHitBarCollision();
     DetectBulletEnemyCollision();
     RendDisapearingEnemies();
+    RendStartingCoins();
 }
 
 void InitClass::OnMouseBtnPress(int mouseX, int mouseY, int button, int mods)
@@ -698,6 +770,7 @@ void InitClass::OnMouseBtnPress(int mouseX, int mouseY, int button, int mods)
                 {
                     staticScene->getPlacing(i, j)->setDisapearing(true);
                     staticScene->getPlacing(i, j)->setTaken(false);
+                    createdShooter[i][j] = false;
 				}
 			}
 		}

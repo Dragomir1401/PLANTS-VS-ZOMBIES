@@ -93,6 +93,35 @@ int m1::ColorUtils::SelectShootingPowerByColor(glm::vec3 color)
 
 }
 
+int m1::ColorUtils::GetShooterCostByColor(glm::vec3 color)
+{
+    // Determines enemy speed by color  
+    // purple - 4
+    // yellow - 3
+    // blue - 2
+    // orange - 1
+    if (color == glm::vec3(1.0f, 0.5f, 0.0f))
+    {
+		return 1;
+	}
+    else if (color == glm::vec3(0.0f, 0.0f, 1.0f))
+    {
+		return 2;
+	}
+    else if (color == glm::vec3(1.0f, 1.0f, 0.0f))
+    {
+		return 3;
+	}
+    else if (color == glm::vec3(0.6f, 0.0f, 1.0f))
+    {
+		return 4;
+	}
+    else
+    {
+		return 0;
+	}
+}
+
 int m1::ColorUtils::SelectRandomLine()
 {
     // Returns a random int between 0 and 3

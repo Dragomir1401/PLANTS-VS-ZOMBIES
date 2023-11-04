@@ -29,3 +29,13 @@ int MeshWrapperShooter::getDisappearSteps() const
 {
 	return disappearSteps_;
 }
+
+void MeshWrapperShooter::setCostWasPaid(bool costWasPaid)
+{
+	costWasPaid_ = costWasPaid;
+}
+
+bool MeshWrapperShooter::getCostWasPaid() const
+{
+	return costWasPaid_;
+}
