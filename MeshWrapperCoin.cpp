@@ -18,3 +18,13 @@ bool MeshWrapperCoin::getCoinWasCollected()
 {
 	return coinWasCollected;
 }
+
+void MeshWrapperCoin::setIsBigCoin(bool value)
+{
+	isBigCoin = value;
+}
+
+bool MeshWrapperCoin::getIsBigCoin()
+{
+	return isBigCoin;
+}

@@ -54,6 +54,8 @@ void InitClass::Init()
 
     slowDownTimer = 0.0f;
     healthPointSpawnRate = 0.0f;
+    coinSpawnTimer = 0.0f;
+    bigCoinTimer = 0.0f;
 
     staticScene = new StaticScene();
     colorUtils = new ColorUtils();
@@ -235,6 +237,41 @@ void InitClass::DisapearAnimation(float deltaTimeSeconds, MeshWrapper* mesh, flo
         modelMatrix *= transformUtils::Scale(mesh->getScale());
         modelMatrix *= transformUtils::Translate(-radius, 0);
         RenderMesh2D(mesh->getMesh(), shaders["VertexColor"], modelMatrix);
+	}
+}
+
+void InitClass::PulsingAnimation(float deltaTimeSeconds, MeshWrapper* mesh, float radius)
+{
+    // Creates a pulsing animation like a heart beat
+    glm::vec2 scale = mesh->getScale();
+
+    if (mesh->getTimeAccumulator() < 1.0f)
+    {
+		scale.x -= 0.5f * deltaTimeSeconds;
+		scale.y -= 0.5f * deltaTimeSeconds;
+	}
+    else
+    {
+		scale.x += 0.5f * deltaTimeSeconds;
+		scale.y += 0.5f * deltaTimeSeconds;
+	}
+
+    if (mesh->getTimeAccumulator() > 2.0f)
+    {
+        mesh->setTimeAccumulator(0.0f);
+    }
+
+    mesh->setScale(scale);
+
+    if (mesh != nullptr)
+    {
+		// Rend the shooter at the position of the corresponding placing in matrix
+		modelMatrix = glm::mat3(1);
+		modelMatrix *= transformUtils::Translate(mesh->getMovingPosition());
+		modelMatrix *= transformUtils::Translate(radius, 0);
+		modelMatrix *= transformUtils::Scale(mesh->getScale());
+		modelMatrix *= transformUtils::Translate(-radius, 0);
+		RenderMesh2D(mesh->getMesh(), shaders["VertexColor"], modelMatrix);
 	}
 }
 
@@ -571,25 +608,53 @@ void InitClass::RendActiveShooters()
 
 void InitClass::GenerateRandomCoins()
 {
+    int screenWidth = window->GetResolution().x;
+    int screenHeight = window->GetResolution().y;
+
     // Generates stars at random positions on the screen that can be collected with click
     if (coinSpawnTimer > COIN_SPAWN_RATE)
     {
-        int screenWidth = window->GetResolution().x;
-        int screenHeight = window->GetResolution().y;
         int randomX = rand() % screenWidth;
         int randomY = rand() % screenHeight;
-        glm::vec2 position;
-        position.x = (float)(randomX);
-        position.y = (float)(randomY);
 
-        MeshWrapperCoin* star = new MeshWrapperCoin(shapes::CreateStar("star", glm::vec3(0, 0, 2), DEFAULT_BULLET_SIZE, glm::vec3(1.0f, 0.98f, 0.97f), true));
-        star->setPosition(position);
-        star->setMovingPosition(position);
-        star->setCoinWasCollected(false);
-        randomCoins.push_back(star);
+        if (randomX > MATRIX_DISPLACEMENT * 4 || randomY > MATRIX_DISPLACEMENT * 4)
+        {
+            glm::vec2 position;
+            position.x = (float)(randomX);
+            position.y = (float)(randomY);
 
-        coinSpawnTimer = 0.0f;
+            MeshWrapperCoin* star = new MeshWrapperCoin(shapes::CreateStar("star", glm::vec3(0, 0, 2), DEFAULT_BULLET_SIZE, glm::vec3(1.0f, 0.98f, 0.97f), true));
+            star->setPosition(position);
+            star->setMovingPosition(position);
+            star->setCoinWasCollected(false);
+            randomCoins.push_back(star);
+
+            coinSpawnTimer = 0.0f;
+        }
     }
+
+    // Generate a big coin at random position on the screen that can be collected with click
+    if (bigCoinTimer > BIG_COIN_SPAWN_RATE)
+    {
+		int randomX = rand() % screenWidth;
+		int randomY = rand() % screenHeight;
+
+        if (randomX > MATRIX_DISPLACEMENT * 4 || randomY > MATRIX_DISPLACEMENT * 4)
+        {
+            glm::vec2 position;
+            position.x = (float)(randomX);
+            position.y = (float)(randomY);
+
+            MeshWrapperCoin* star = new MeshWrapperCoin(shapes::CreateStar("star", glm::vec3(0, 0, 2), (double)(DEFAULT_BULLET_SIZE * 1.5), glm::vec3(1.0f, 0.87f, 0.0f), true));
+            star->setPosition(position);
+            star->setMovingPosition(position);
+            star->setCoinWasCollected(false);
+            star->setIsBigCoin(true);
+            randomCoins.push_back(star);
+
+            bigCoinTimer = 0.0f;
+        }
+	}
 }
 
 void InitClass::RendRandomCoins()
@@ -599,9 +664,48 @@ void InitClass::RendRandomCoins()
     {
         if (!randomCoins[i]->getCoinWasCollected())
         {
-			modelMatrix = glm::mat3(1);
-			modelMatrix *= transformUtils::Translate(randomCoins[i]->getPosition());
-			RenderMesh2D(randomCoins[i]->getMesh(), shaders["VertexColor"], modelMatrix);
+            glm::mat3 modelMatrix = glm::mat3(1);
+            if (randomCoins[i]->getIsBigCoin())
+            {
+                // Make a pulsing animation for big coins
+                randomCoins[i]->setTimeAccumulator(randomCoins[i]->getTimeAccumulator() + currentTimer);
+				PulsingAnimation(currentTimer, randomCoins[i], (double)(DEFAULT_BULLET_SIZE * 1.5));
+			}
+            else
+            {
+                modelMatrix = glm::mat3(1);
+                modelMatrix *= transformUtils::Translate(randomCoins[i]->getPosition());
+                RenderMesh2D(randomCoins[i]->getMesh(), shaders["VertexColor"], modelMatrix);
+            }
+		}
+	}
+}
+
+void InitClass::DetectShooterEnemyCollision()
+{
+    // Detects if enemy colided with shooter and then makes a disappearing animation for the shooter
+    for (int line = 0; line < PLACINGS_SIZE; line++)
+    {
+        for (int i = 0; i < lineEnemies[line].size(); i++)
+        {
+            if (lineEnemies[line][i]->getEnemyStarted() && !lineEnemies[line][i]->getEnemyIsDead() && !lineEnemies[line][i]->getIsHealthPoint())
+            {
+                for (int j = 0; j < PLACINGS_SIZE; j++)
+                {
+                    if (staticScene->getPlacing(line, j)->getTaken() && staticScene->getPlacing(line, j)->getVisibility())
+                    {
+						float distance = glm::distance(lineEnemies[line][i]->getMovingPosition(), shootersMatrix[line][j]->getMovingPosition());
+
+                        if (distance < DEFAULT_ENEMY_SIZE / 2 + DEFAULT_SQUARE_SIDE * SHOOTER_SCALE / 2)
+                        {
+							// Remove the shooter from the matrix of shooters
+                            staticScene->getPlacing(line, j)->setDisapearing(true);
+							staticScene->getPlacing(line, j)->setTaken(false);
+                            createdShooter[i][j] = false;
+						}
+					}
+				}
+			}
 		}
 	}
 }
@@ -624,6 +728,7 @@ void InitClass::RendDisapearingShooters()
                 else
                 {
                     staticScene->getPlacing(i, j)->setDisapearing(false);
+                    createdShooter[i][j] = false;
                     shootersMatrix[i][j] = nullptr;
                 }
             }
@@ -750,6 +855,7 @@ void InitClass::Update(float deltaTimeSeconds)
     slowDownTimer += deltaTimeSeconds;
     healthPointSpawnRate += deltaTimeSeconds;
     coinSpawnTimer += deltaTimeSeconds;
+    bigCoinTimer += deltaTimeSeconds;
 
     RendPlacings();
 	RendHitBar();
@@ -760,7 +866,6 @@ void InitClass::Update(float deltaTimeSeconds)
     CreateActiveShooters();
     RendActiveShooters();
     Shoot();
-    RendDisapearingShooters();
     RendShootingLine();
     GenerateEnemies();
     RendEnemies();
@@ -771,6 +876,9 @@ void InitClass::Update(float deltaTimeSeconds)
     RendStartingCoins();
     GenerateRandomCoins();
     RendRandomCoins();
+    DetectShooterEnemyCollision();
+
+    RendDisapearingShooters();
 }
 
 void InitClass::OnMouseBtnPress(int mouseX, int mouseY, int button, int mods)
@@ -794,30 +902,33 @@ void InitClass::OnMouseBtnPress(int mouseX, int mouseY, int button, int mods)
         }
     }
 
-    // If one of placings are pressed, set the corresponding placing as not taken
-    for (int i = 0; i < PLACINGS_SIZE; i++)
+    // If one of placings are pressed with right click, set the corresponding placing as not taken
+    if (window->MouseHold(GLFW_MOUSE_BUTTON_RIGHT))
     {
-        for (int j = 0; j < PLACINGS_SIZE; j++)
+        for (int i = 0; i < PLACINGS_SIZE; i++)
         {
-			double shooterBeginX = MATRIX_CORNER_X + MATRIX_DISPLACEMENT * j;
-			double shooterEndX = shooterBeginX + DEFAULT_SQUARE_SIDE;
-
-			double shooterBeginY = MATRIX_CORNER_Y + MATRIX_DISPLACEMENT * i;
-			double shooterEndY = shooterBeginY + DEFAULT_SQUARE_SIDE;
-
-            if (mouseX >= shooterBeginX && mouseX <= shooterEndX &&
-                mouseY >= shooterBeginY && mouseY <= shooterEndY)
+            for (int j = 0; j < PLACINGS_SIZE; j++)
             {
-                // Eliminate the shooter from the matrix of shooters
-                if (staticScene->getPlacing(i, j)->getTaken())
+                double shooterBeginX = MATRIX_CORNER_X + MATRIX_DISPLACEMENT * j;
+                double shooterEndX = shooterBeginX + DEFAULT_SQUARE_SIDE;
+
+                double shooterBeginY = MATRIX_CORNER_Y + MATRIX_DISPLACEMENT * i;
+                double shooterEndY = shooterBeginY + DEFAULT_SQUARE_SIDE;
+
+                if (mouseX >= shooterBeginX && mouseX <= shooterEndX &&
+                    mouseY >= shooterBeginY && mouseY <= shooterEndY)
                 {
-                    staticScene->getPlacing(i, j)->setDisapearing(true);
-                    staticScene->getPlacing(i, j)->setTaken(false);
-                    createdShooter[i][j] = false;
-				}
-			}
-		}
-	}
+                    // Eliminate the shooter from the matrix of shooters
+                    if (staticScene->getPlacing(i, j)->getTaken())
+                    {
+                        staticScene->getPlacing(i, j)->setDisapearing(true);
+                        staticScene->getPlacing(i, j)->setTaken(false);
+                        createdShooter[i][j] = false;
+                    }
+                }
+            }
+        }
+    }
 
     // Detect if click was done inside the radius of a coin and collect it
     for (int i = 0; i < randomCoins.size(); i++)
@@ -828,12 +939,20 @@ void InitClass::OnMouseBtnPress(int mouseX, int mouseY, int button, int mods)
             double coinCenterY = randomCoins[i]->getPosition().y;
 
             double radius = DEFAULT_BULLET_SIZE / 2;
+            if (randomCoins[i]->getIsBigCoin())
+            {
+				radius = DEFAULT_BULLET_SIZE * 3 / 4;
+			}
 
             if (mouseX >= coinCenterX - radius && mouseX <= coinCenterX + radius &&
                 mouseY >= coinCenterY - radius && mouseY <= coinCenterY + radius)
             {
 				randomCoins[i]->setCoinWasCollected(true);
 				nrOfCoins++;
+                if (randomCoins[i]->getIsBigCoin())
+                {
+                    nrOfCoins += 4;
+                }
 			}
 		}
 	}

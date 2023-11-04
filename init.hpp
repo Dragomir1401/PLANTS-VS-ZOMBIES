@@ -7,6 +7,7 @@
 #define TYPES_OF_SHOOTERS 4
 #define SCREEN_WIDTH 1280
 #define COIN_SPAWN_RATE 3
+#define BIG_COIN_SPAWN_RATE 15
 
 namespace m1
 {
@@ -38,6 +39,7 @@ namespace m1
         void GenerateEnemies();
         void Shoot();
         void DisapearAnimation(float deltaTimeSeconds, MeshWrapper* mesh, float radius);
+        void PulsingAnimation(float deltaTimeSeconds, MeshWrapper* mesh, float radius);
         void RendShootingLine();
         void DetectHitBarCollision();
         void DetectBulletEnemyCollision();
@@ -47,6 +49,7 @@ namespace m1
         void RendActiveShooters();
         void GenerateRandomCoins();
         void RendRandomCoins();
+        void DetectShooterEnemyCollision();
 
     protected:
         double cx, cy;
@@ -75,6 +78,7 @@ namespace m1
         bool createdShooter[PLACINGS_SIZE][PLACINGS_SIZE] = { false };
         float slowDownTimer = 0;
         float coinSpawnTimer = 0;
+        float bigCoinTimer = 0;
         float healthPointSpawnRate = 0;
         int nrOfHealthPoints = HEALTH_POINTS_COUNT;
         int nrOfCoins = DEFAULT_COINS_COUNT;
