@@ -152,28 +152,41 @@ Mesh* shapes::CreateHeart(
 
 Mesh* shapes::CreateStar(
     const std::string& name,
-    glm::vec3 leftBottomCorner,
+    glm::vec3 center,
     float length,
     glm::vec3 color,
     bool fill)
 {
-    glm::vec3 corner = leftBottomCorner;
+    glm::vec3 c = center;
     std::vector<VertexFormat> vertices =
     {
-        VertexFormat(corner, color),
-        VertexFormat(corner + glm::vec3((double)4.5 / 12 * length, 0, 0), color),
-        VertexFormat(corner + glm::vec3(length / 2, (double)5 / 12 * length, 0), color),
-        VertexFormat(corner + glm::vec3(length, 0, 0), color),
-        VertexFormat(corner + glm::vec3((double)10 / 12 * length, (double)-8 / 12 * length, 0), color),
-        VertexFormat(corner + glm::vec3((double)2 / 12 * length, (double)-8 / 12 * length, 0), color),
+        VertexFormat(c, color),
+        VertexFormat(c + glm::vec3(-length / 2, length / 6, 0), color),
+        VertexFormat(c + glm::vec3((double)-1.4 / 12 * length, length / 6, 0), color),
+        VertexFormat(c + glm::vec3(0, length / 2, 0), color),
+        VertexFormat(c + glm::vec3((double)1.4 / 12 * length, length / 6, 0), color),
+        VertexFormat(c + glm::vec3(length / 2, length / 6, 0), color),
+
+        VertexFormat(c + glm::vec3((double)2.35 / 12 * length, -length / 12, 0), color),
+        VertexFormat(c + glm::vec3((double)4 / 12 * length, -length / 2, 0), color),
+        VertexFormat(c + glm::vec3(0, -2.8 / 12 * length, 0), color),
+        VertexFormat(c + glm::vec3(-(double)4 / 12 * length, -length / 2, 0), color),
+        VertexFormat(c + glm::vec3(-(double)2.35 / 12 * length, -length / 12, 0), color),
     };
 
 
     Mesh* star = new Mesh(name);
-    std::vector<unsigned int> indices = { 1, 2, 4,
-                                          1, 3, 5,
-                                          1, 4, 0,
-    };
+    std::vector<unsigned int> indices = { 0, 1, 2,
+                                          0, 2, 3,
+										  0, 3, 4,
+										  0, 4, 5,
+                                          0, 5, 6,
+                                          0, 6, 7,
+                                          0, 7, 8,
+                                          0, 8, 9,
+                                          0, 9, 10,
+                                          0, 10, 1
+                                        };      
 
     if (!fill) {
         star->SetDrawMode(GL_LINE_LOOP);
@@ -192,7 +205,7 @@ Mesh* shapes::CreateHexagon(
     bool fill)
 {
     glm::vec3 c = center;
-    int r = length / 2;
+    float r = length / 2;
     glm::vec3 c1 = center;
     c1.z = 3;
     float scale = 1.5;

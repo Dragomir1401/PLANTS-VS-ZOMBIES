@@ -33,6 +33,10 @@ public:
 	int getEnemyHealth() const;
 	void setEnemySpeed(float enemySpeed);
 	float getEnemySpeed() const;
+	void setEnemyIsDead(bool enemyIsDead);
+	bool getEnemyIsDead() const;
+	void setIsHealthPoint(bool isHealthPoint);
+	bool getIsHealthPoint() const;
 
 private:
 	Mesh* mesh_;
@@ -48,4 +52,6 @@ private:
 	glm::vec2 translate_ = glm::vec2(0, 0);
 	float angularStep_ = 0;
 	float timeAccumulator_ = 0;
+	bool enemyIsDead_ = false;
+	bool isHealthPoint_ = false;
 };

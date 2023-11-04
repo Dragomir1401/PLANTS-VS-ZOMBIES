@@ -144,4 +144,24 @@ float MeshWrapperEnemy::getEnemySpeed() const
 	return enemySpeed_;
 }
 
+void MeshWrapperEnemy::setEnemyIsDead(bool enemyIsDead)
+{
+	enemyIsDead_ = enemyIsDead;
+}
+
+bool MeshWrapperEnemy::getEnemyIsDead() const
+{
+	return enemyIsDead_;
+}
+
+void MeshWrapperEnemy::setIsHealthPoint(bool isHealthPoint)
+{
+	isHealthPoint_ = isHealthPoint;
+}
+
+bool MeshWrapperEnemy::getIsHealthPoint() const
+{
+	return isHealthPoint_;
+}
+
 

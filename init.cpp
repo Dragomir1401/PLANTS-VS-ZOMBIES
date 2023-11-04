@@ -53,6 +53,7 @@ void InitClass::Init()
     }
 
     slowDownTimer = 0.0f;
+    healthPointSpawnRate = 0.0f;
 
     staticScene = new StaticScene();
     colorUtils = new ColorUtils();
@@ -136,7 +137,7 @@ void InitClass::RendHealthPoints()
 {
     modelMatrix = glm::mat3(1);
     modelMatrix *= transformUtils::Translate(HEALTH_POINTS_X, HEALTH_POINTS_Y);
-    for (int i = 0; i < HEALTH_POINTS_COUNT; i++)
+    for (int i = 0; i < nrOfHealthPoints; i++)
     {
         if (i)
         {
@@ -186,11 +187,11 @@ void InitClass::Shoot()
                 glm::vec3 color = shootersMatrix[i][j]->getColor();
 
                 // Create bullets with a timer of 2 seconds
-                if (timedShooting[i][j] > colorUtils->GetBulletIntervalByColor(color))
+                if (timedShooting[i][j] > colorUtils->GetBulletIntervalByColor(color) && LineContainsEnemyOfColor(i, color))
                 {
                     MeshWrapperBullet* star = new MeshWrapperBullet(shapes::CreateStar("starShooting", glm::vec3(0, 0, 2), DEFAULT_BULLET_SIZE, color, true));
-                    star->setPosition(shootersMatrix[i][j]->getPositionX() + DEFAULT_BULLET_SIZE, shootersMatrix[i][j]->getPositionY() + DEFAULT_SQUARE_SIDE / 8);
-                    star->setMovingPosition(shootersMatrix[i][j]->getPositionX() + DEFAULT_BULLET_SIZE, shootersMatrix[i][j]->getPositionY() + DEFAULT_SQUARE_SIDE / 8);
+                    star->setPosition(shootersMatrix[i][j]->getPositionX() + DEFAULT_BULLET_SIZE, shootersMatrix[i][j]->getPositionY());
+                    star->setMovingPosition(shootersMatrix[i][j]->getPositionX() + DEFAULT_BULLET_SIZE, shootersMatrix[i][j]->getPositionY());
                     star->setColor(shootersMatrix[i][j]->getColor());
                     star->setBulletWasShot(true);
                     star->setShooterPower(shootersMatrix[i][j]->getShooterPower());
@@ -313,7 +314,7 @@ void InitClass::RendShootingLine()
             {
                 // Increment translation of the shooting bullet
                 glm::vec2 t = lineBullets[line][i]->getTranslate();
-                t.x += currentTimer * 100;
+                t.x += currentTimer * 300;
                 lineBullets[line][i]->setTranslate(t);
 
                 float angularStep = lineBullets[line][i]->getAngularStep() + currentTimer * 6;
@@ -330,23 +331,124 @@ void InitClass::RendShootingLine()
 
                 // Set moving position
                 glm::vec2 position = lineBullets[line][i]->getMovingPosition();
-                position.x += currentTimer * 100;
+                position.x += currentTimer * 300;
                 lineBullets[line][i]->setMovingPosition(position);
-
-                // Translate to the center of the bullet (assuming width and height can be accessed)
-                modelMatrix *= transformUtils::Translate(DEFAULT_BULLET_SIZE / 2, -DEFAULT_BULLET_SIZE / 9);
 
                 //  Rotate the bullet around its center
                 modelMatrix *= transformUtils::Rotate(angularStep);
-
-                // Translate back from the center
-                modelMatrix *= transformUtils::Translate(-DEFAULT_BULLET_SIZE / 2, DEFAULT_BULLET_SIZE / 9);
 
                 // Render the bullet with the transformations
                 RenderMesh2D(lineBullets[line][i]->getMesh(), shaders["VertexColor"], modelMatrix);
             }
         }
     }
+}
+
+void InitClass::DetectHitBarCollision()
+{
+    for (int line = 0; line < PLACINGS_SIZE; line++)
+    {
+        for (int i = 0; i < lineEnemies[line].size(); i++)
+        {
+            if (lineEnemies[line][i]->getEnemyStarted() && !lineEnemies[line][i]->getEnemyIsDead())
+            {
+				// Check if the enemy is in the hit bar
+                if (lineEnemies[line][i]->getMovingPosition().x >= INITIAL_X &&
+                    lineEnemies[line][i]->getMovingPosition().x <= INITIAL_X + DEFAULT_ENEMY_SIZE)
+                {
+                    lineEnemies[line][i]->setEnemyStarted(false);
+                    lineEnemies[line][i]->setEnemyIsDead(true);
+                    
+                    // Decrease the number of health points
+                    if (!lineEnemies[line][i]->getIsHealthPoint())
+                    {
+                        if (nrOfHealthPoints > 0)
+                        {
+                            nrOfHealthPoints--;
+                        }
+                    }
+
+                    // Remove the enemy from the line
+                    lineEnemies[line].erase(lineEnemies[line].begin() + i);
+				}
+			}
+		}
+	}
+}
+
+void InitClass::DetectBulletEnemyCollision()
+{
+    float radiusSum = DEFAULT_BULLET_SIZE / 2 + DEFAULT_ENEMY_SIZE / 2;
+
+    for (int line = 0; line < PLACINGS_SIZE; line++)
+    {
+        for (int i = 0; i < lineBullets[line].size(); i++)
+        {
+            if (lineBullets[line][i]->getBulletWasShot() && !lineBullets[line][i]->getBulletHitSomething())
+            {
+                for (int j = 0; j < lineEnemies[line].size(); j++)
+                {
+                    if (lineEnemies[line][j]->getEnemyStarted() && !lineEnemies[line][j]->getEnemyIsDead())
+                    {
+						// Check if the bullet radius + enemy radius is greater than the distance between their centers
+                        float distance = glm::distance(lineBullets[line][i]->getMovingPosition(), lineEnemies[line][j]->getMovingPosition());
+
+                        if (radiusSum > distance)
+                        {
+							lineEnemies[line][j]->setEnemyHealth(lineEnemies[line][j]->getEnemyHealth() - lineBullets[line][i]->getShooterPower());
+
+							// Check if the enemy is dead
+                            if (lineEnemies[line][j]->getEnemyHealth() <= 0)
+                            {
+								lineEnemies[line][j]->setEnemyStarted(false);
+							    lineEnemies[line][j]->setEnemyIsDead(true);
+
+								// Increase the number of health points if we hit a health point
+                                if (lineEnemies[line][j]->getIsHealthPoint())
+                                {
+                                    if (nrOfHealthPoints < HEALTH_POINTS_COUNT)
+                                    {
+										nrOfHealthPoints++;
+									}
+								}
+
+								// Remove the enemy from the line
+								lineEnemies[line].erase(lineEnemies[line].begin() + j);
+							}
+                            // Set bullet properties
+                            lineBullets[line][i]->setBulletWasShot(false);
+
+                            // Set bullet hit something
+                            lineBullets[line][i]->setBulletHitSomething(true);
+						}
+					}
+				}
+			}
+
+            // Remove the bullet from the line if it hit something
+            if (lineBullets[line][i]->getBulletHitSomething())
+            {
+                lineBullets[line].erase(lineBullets[line].begin() + i);
+            }
+		}
+	}
+}
+
+bool InitClass::LineContainsEnemyOfColor(int line, glm::vec3 color)
+{
+    // Checks if there are enemies of color given on the line
+    for (int i = 0; i < lineEnemies[line].size(); i++)
+    {
+        if (lineEnemies[line][i]->getEnemyStarted() && !lineEnemies[line][i]->getEnemyIsDead())
+        {
+            if (lineEnemies[line][i]->getColor() == color)
+            {
+                return true;
+			}
+		}
+	}
+
+    return false;
 }
 
 void InitClass::RendDisapearingShooters()
@@ -387,10 +489,20 @@ void InitClass::GenerateEnemies()
     glm::vec3 color = colorUtils->getRandomColor();
     glm::vec3 insideColor = colorUtils->getRandomColor();
 
-    // Create bullets with a timer of 2 seconds
-    if (lineEnemyTimer[i][colorUtils->GetTypeByColor(color)] > colorUtils->GetSpawnIntervalByColor(color) + colorUtils->getRandomFloat(5.0f, 25.0f))
+    // Create bullets with a timer
+    if (lineEnemyTimer[i][colorUtils->GetTypeByColor(color)] > colorUtils->GetSpawnIntervalByColor(color) + colorUtils->getRandomFloat(5.0f, 15.0f))
     {
         MeshWrapperEnemy* hex = new MeshWrapperEnemy(shapes::CreateHexagon("enemy", glm::vec3(0, 0, 2), DEFAULT_BULLET_SIZE, color, insideColor, true));
+        if (healthPointSpawnRate < 25.0f)
+        {
+            hex = new MeshWrapperEnemy(shapes::CreateHexagon("enemy", glm::vec3(0, 0, 2), DEFAULT_BULLET_SIZE, color, insideColor, true));
+        }
+        else
+        {
+			hex = new MeshWrapperEnemy(shapes::CreateHeart("healthPoint", glm::vec3(0, 0, 2), DEFAULT_BULLET_SIZE, color, true));
+            hex->setIsHealthPoint(true);
+            healthPointSpawnRate = 0.0f;
+		}
 
         hex->setPosition((float)(SCREEN_WIDTH), (float)(MATRIX_CORNER_Y + MATRIX_DISPLACEMENT * i + DEFAULT_SQUARE_SIDE / 2));
         hex->setMovingPosition((float)(SCREEN_WIDTH), (float)(MATRIX_CORNER_Y + MATRIX_DISPLACEMENT * i + DEFAULT_SQUARE_SIDE / 2));
@@ -413,7 +525,7 @@ void InitClass::RendEnemies()
     {
         for (int i = 0; i < lineEnemies[line].size(); i++)
         {
-            if (lineEnemies[line][i]->getEnemyStarted())
+            if (lineEnemies[line][i]->getEnemyStarted() && !lineEnemies[line][i]->getEnemyIsDead())
             {
 				// Increment translation of the moving enemy
 				glm::vec2 t = lineEnemies[line][i]->getTranslate();
@@ -480,6 +592,7 @@ void InitClass::Update(float deltaTimeSeconds)
 		}
     }
     slowDownTimer += deltaTimeSeconds;
+    healthPointSpawnRate += deltaTimeSeconds;
 
     RendPlacings();
 	RendHitBar();
@@ -494,6 +607,8 @@ void InitClass::Update(float deltaTimeSeconds)
     GenerateEnemies();
     RendEnemies();
     RendShootersCosts();
+    DetectHitBarCollision();
+    DetectBulletEnemyCollision();
 }
 
 void InitClass::OnMouseBtnPress(int mouseX, int mouseY, int button, int mods)

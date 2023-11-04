@@ -123,3 +123,13 @@ void MeshWrapperBullet::setMovingPosition(glm::vec2 position)
 {
 	movingPosition_ = position;
 }
+
+void MeshWrapperBullet::setBulletHitSomething(bool bulletHitSomething)
+{
+	bulletHitSomething_ = bulletHitSomething;
+}
+
+bool MeshWrapperBullet::getBulletHitSomething() const
+{
+	return bulletHitSomething_;
+}

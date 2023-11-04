@@ -29,6 +29,8 @@ public:
 	glm::vec2 getMovingPosition() const;
 	void setMovingPosition(float positionX, float positionY);
 	void setMovingPosition(glm::vec2 position);
+	void setBulletHitSomething(bool bulletHitSomething);
+	bool getBulletHitSomething() const;
 
 private:
 	Mesh* mesh_;
@@ -42,4 +44,5 @@ private:
 	glm::vec2 translate_ = glm::vec2(0, 0);
 	float angularStep_ = 0;
 	float timeAccumulator_ = 0;
+	bool bulletHitSomething_ = false;
 };

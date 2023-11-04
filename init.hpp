@@ -39,6 +39,9 @@ namespace m1
         void Shoot();
         void DisapearAnimationShooter(float deltaTimeSeconds, MeshWrapper* mesh, int displacementScale);
         void RendShootingLine();
+        void DetectHitBarCollision();
+        void DetectBulletEnemyCollision();
+        bool LineContainsEnemyOfColor(int line, glm::vec3 color);
 
     protected:
         double cx, cy;
@@ -64,5 +67,7 @@ namespace m1
         std::vector<MeshWrapperEnemy*> lineEnemies[PLACINGS_SIZE];
         float lineEnemyTimer[PLACINGS_SIZE][TYPES_OF_SHOOTERS];
         float slowDownTimer = 0;
+        float healthPointSpawnRate = 0;
+        int nrOfHealthPoints = HEALTH_POINTS_COUNT;
     };
 }   // namespace m1
