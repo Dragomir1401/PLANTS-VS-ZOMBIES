@@ -8,6 +8,7 @@
 #include "lab_m1/tema1/MeshWrapperShooter.hpp"
 #include "lab_m1/tema1/MeshWrapperBullet.hpp"
 #include "lab_m1/tema1/MeshWrapperEnemy.hpp"
+#include "lab_m1/tema1/MeshWrapperCoin.hpp"
 
 #define PLACINGS_SIZE 3
 #define INITIAL_X 30

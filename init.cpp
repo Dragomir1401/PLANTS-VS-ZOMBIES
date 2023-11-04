@@ -406,7 +406,10 @@ void InitClass::DetectBulletEnemyCollision()
             {
                 for (int j = 0; j < lineEnemies[line].size(); j++)
                 {
-                    if (lineEnemies[line][j]->getEnemyStarted() && !lineEnemies[line][j]->getEnemyIsDead())
+                    glm::vec3 colorBullet = lineBullets[line][i]->getColor();
+                    glm::vec3 colorEnemy = lineEnemies[line][j]->getColor();
+
+                    if (lineEnemies[line][j]->getEnemyStarted() && !lineEnemies[line][j]->getEnemyIsDead() && colorBullet == colorEnemy)
                     {
 						// Check if the bullet radius + enemy radius is greater than the distance between their centers
                         float distance = glm::distance(lineBullets[line][i]->getMovingPosition(), lineEnemies[line][j]->getMovingPosition());
@@ -566,6 +569,43 @@ void InitClass::RendActiveShooters()
     }
 }
 
+void InitClass::GenerateRandomCoins()
+{
+    // Generates stars at random positions on the screen that can be collected with click
+    if (coinSpawnTimer > COIN_SPAWN_RATE)
+    {
+        int screenWidth = window->GetResolution().x;
+        int screenHeight = window->GetResolution().y;
+        int randomX = rand() % screenWidth;
+        int randomY = rand() % screenHeight;
+        glm::vec2 position;
+        position.x = (float)(randomX);
+        position.y = (float)(randomY);
+
+        MeshWrapperCoin* star = new MeshWrapperCoin(shapes::CreateStar("star", glm::vec3(0, 0, 2), DEFAULT_BULLET_SIZE, glm::vec3(1.0f, 0.98f, 0.97f), true));
+        star->setPosition(position);
+        star->setMovingPosition(position);
+        star->setCoinWasCollected(false);
+        randomCoins.push_back(star);
+
+        coinSpawnTimer = 0.0f;
+    }
+}
+
+void InitClass::RendRandomCoins()
+{
+    // Rend all coins from list
+    for (int i = 0; i < randomCoins.size(); i++)
+    {
+        if (!randomCoins[i]->getCoinWasCollected())
+        {
+			modelMatrix = glm::mat3(1);
+			modelMatrix *= transformUtils::Translate(randomCoins[i]->getPosition());
+			RenderMesh2D(randomCoins[i]->getMesh(), shaders["VertexColor"], modelMatrix);
+		}
+	}
+}
+
 void InitClass::RendDisapearingShooters()
 {
     // Rend the disapearing shooters
@@ -709,6 +749,7 @@ void InitClass::Update(float deltaTimeSeconds)
     }
     slowDownTimer += deltaTimeSeconds;
     healthPointSpawnRate += deltaTimeSeconds;
+    coinSpawnTimer += deltaTimeSeconds;
 
     RendPlacings();
 	RendHitBar();
@@ -728,6 +769,8 @@ void InitClass::Update(float deltaTimeSeconds)
     DetectBulletEnemyCollision();
     RendDisapearingEnemies();
     RendStartingCoins();
+    GenerateRandomCoins();
+    RendRandomCoins();
 }
 
 void InitClass::OnMouseBtnPress(int mouseX, int mouseY, int button, int mods)
@@ -772,6 +815,25 @@ void InitClass::OnMouseBtnPress(int mouseX, int mouseY, int button, int mods)
                     staticScene->getPlacing(i, j)->setTaken(false);
                     createdShooter[i][j] = false;
 				}
+			}
+		}
+	}
+
+    // Detect if click was done inside the radius of a coin and collect it
+    for (int i = 0; i < randomCoins.size(); i++)
+    {
+        if (!randomCoins[i]->getCoinWasCollected())
+        {
+			double coinCenterX = randomCoins[i]->getPosition().x;
+            double coinCenterY = randomCoins[i]->getPosition().y;
+
+            double radius = DEFAULT_BULLET_SIZE / 2;
+
+            if (mouseX >= coinCenterX - radius && mouseX <= coinCenterX + radius &&
+                mouseY >= coinCenterY - radius && mouseY <= coinCenterY + radius)
+            {
+				randomCoins[i]->setCoinWasCollected(true);
+				nrOfCoins++;
 			}
 		}
 	}

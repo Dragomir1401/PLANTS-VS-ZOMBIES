@@ -6,6 +6,7 @@
 
 #define TYPES_OF_SHOOTERS 4
 #define SCREEN_WIDTH 1280
+#define COIN_SPAWN_RATE 3
 
 namespace m1
 {
@@ -44,6 +45,8 @@ namespace m1
         void RendDisapearingEnemies();
         void RendStartingCoins();
         void RendActiveShooters();
+        void GenerateRandomCoins();
+        void RendRandomCoins();
 
     protected:
         double cx, cy;
@@ -67,9 +70,11 @@ namespace m1
         std::vector<MeshWrapperBullet*> lineBullets[PLACINGS_SIZE];
         std::vector<MeshWrapperEnemy*> lineEnemies[PLACINGS_SIZE];
         std::vector<MeshWrapperEnemy*> disapearingEnemies[PLACINGS_SIZE];
+        std::vector<MeshWrapperCoin*> randomCoins;
         float lineEnemyTimer[PLACINGS_SIZE][TYPES_OF_SHOOTERS];
         bool createdShooter[PLACINGS_SIZE][PLACINGS_SIZE] = { false };
         float slowDownTimer = 0;
+        float coinSpawnTimer = 0;
         float healthPointSpawnRate = 0;
         int nrOfHealthPoints = HEALTH_POINTS_COUNT;
         int nrOfCoins = DEFAULT_COINS_COUNT;
