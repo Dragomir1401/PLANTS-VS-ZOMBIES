@@ -52,6 +52,20 @@ namespace transformUtils
 
     }
 
+    // Scale matrix
+    inline glm::mat3 Scale(glm::vec2 scale)
+    {
+        // TODO(student): Implement the scaling matrix
+        glm::mat3 scaleMatrix = glm::mat3(0);
+
+        scaleMatrix[0][0] = scale.x;
+        scaleMatrix[1][1] = scale.y;
+        scaleMatrix[2][2] = 1;
+
+        return scaleMatrix;
+
+    }
+
     // Rotate matrix
     inline glm::mat3 Rotate(float radians)
     {

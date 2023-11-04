@@ -90,8 +90,10 @@ void InitClass::RendPlacings()
 				RenderMesh2D(staticScene->getPlacing(i, j)->getMesh(), shaders["VertexColor"], modelMatrix);
 
                 // Set position of the placing
-                staticScene->getPlacing(i, j)->setPositionX((float)(MATRIX_CORNER_X + j * MATRIX_DISPLACEMENT));
-                staticScene->getPlacing(i, j)->setPositionY((float)(MATRIX_CORNER_Y + i * MATRIX_DISPLACEMENT));
+                glm::vec2 position;
+                position.x = (float)(MATRIX_CORNER_X + j * MATRIX_DISPLACEMENT);
+                position.y = (float)(MATRIX_CORNER_Y + i * MATRIX_DISPLACEMENT);
+                staticScene->getPlacing(i, j)->setPosition(position);
 			}
         }
     }
@@ -107,8 +109,10 @@ void InitClass::RendHitBar()
         RenderMesh2D(staticScene->getHitBar()->getMesh(), shaders["VertexColor"], modelMatrix);
 
         // Set position of the hit bar
-        staticScene->getHitBar()->setPositionX(INITIAL_X);
-        staticScene->getHitBar()->setPositionY(INITIAL_Y);
+        glm::vec2 position;
+        position.x = (float)(INITIAL_X);
+        position.y = (float)(INITIAL_Y);
+        staticScene->getHitBar()->setPosition(position);
     }
 }
 
@@ -127,8 +131,12 @@ void InitClass::RendShooters()
             RenderMesh2D(staticScene->getShooters()[i]->getMesh(), shaders["VertexColor"], modelMatrix);
 
             // Set position of the shooter
-            staticScene->getShooters()[i]->setPositionX((float)(PLACEHOLDERS_X + DEFAULT_SQUARE_SIDE / 8 + SHOOTER_DISPLACEMENT * i));
-            staticScene->getShooters()[i]->setPositionY((float)(PLACEHOLDERS_Y + DEFAULT_SQUARE_SIDE / 2));
+            glm::vec2 position;
+            position.x = (float)(PLACEHOLDERS_X + DEFAULT_SQUARE_SIDE / 8 + SHOOTER_DISPLACEMENT * i);
+            position.y = (float)(PLACEHOLDERS_Y + DEFAULT_SQUARE_SIDE / 2);
+
+            staticScene->getShooters()[i]->setPosition(position);
+            staticScene->getShooters()[i]->setMovingPosition(position);
         }
     }
 }
@@ -149,8 +157,11 @@ void InitClass::RendHealthPoints()
 			RenderMesh2D(staticScene->getHealthPoints()[i]->getMesh(), shaders["VertexColor"], modelMatrix);
 
             // Set position of the health point
-            staticScene->getHealthPoints()[i]->setPositionX((float)(HEALTH_POINTS_X + i * MATRIX_DISPLACEMENT));
-            staticScene->getHealthPoints()[i]->setPositionY((float)(HEALTH_POINTS_Y));
+            glm::vec2 position;
+            position.x = (float)(HEALTH_POINTS_X + i * MATRIX_DISPLACEMENT);
+            position.y = (float)(HEALTH_POINTS_Y);
+
+            staticScene->getHealthPoints()[i]->setPosition(position);
 		}
     }
 }
@@ -170,8 +181,10 @@ void InitClass::RendPlaceHolders()
             RenderMesh2D(staticScene->getPlaceHolders()[i]->getMesh(), shaders["VertexColor"], modelMatrix);
 
             // Set position of the place holder
-            staticScene->getPlaceHolders()[i]->setPositionX((float)(PLACEHOLDERS_X + i * SHOOTER_DISPLACEMENT));
-            staticScene->getPlaceHolders()[i]->setPositionY((float)(PLACEHOLDERS_Y));
+            glm::vec2 position;
+            position.x = (float)(PLACEHOLDERS_X + i * SHOOTER_DISPLACEMENT);
+            position.y = (float)(PLACEHOLDERS_Y);
+            staticScene->getPlaceHolders()[i]->setPosition(position);
         }
     }
 }
@@ -190,8 +203,8 @@ void InitClass::Shoot()
                 if (timedShooting[i][j] > colorUtils->GetBulletIntervalByColor(color) && LineContainsEnemyOfColor(i, color))
                 {
                     MeshWrapperBullet* star = new MeshWrapperBullet(shapes::CreateStar("starShooting", glm::vec3(0, 0, 2), DEFAULT_BULLET_SIZE, color, true));
-                    star->setPosition(shootersMatrix[i][j]->getPositionX() + DEFAULT_BULLET_SIZE, shootersMatrix[i][j]->getPositionY());
-                    star->setMovingPosition(shootersMatrix[i][j]->getPositionX() + DEFAULT_BULLET_SIZE, shootersMatrix[i][j]->getPositionY());
+                    star->setPosition(shootersMatrix[i][j]->getPosition().x + DEFAULT_BULLET_SIZE, shootersMatrix[i][j]->getPosition().y);
+                    star->setMovingPosition(shootersMatrix[i][j]->getPosition().x + DEFAULT_BULLET_SIZE, shootersMatrix[i][j]->getPosition().y);
                     star->setColor(shootersMatrix[i][j]->getColor());
                     star->setBulletWasShot(true);
                     star->setShooterPower(shootersMatrix[i][j]->getShooterPower());
@@ -205,20 +218,22 @@ void InitClass::Shoot()
     }
 }
 
-void InitClass::DisapearAnimationShooter(float deltaTimeSeconds, MeshWrapper* mesh, int displacementScale)
+void InitClass::DisapearAnimation(float deltaTimeSeconds, MeshWrapper* mesh, float radius)
 {
     // Make a disapear animation for the shooter in the corresponding placing in the matrix of shooters
-    mesh->setScaleX(mesh->getScaleX() - 0.7f * deltaTimeSeconds);
-    mesh->setScaleY(mesh->getScaleY() - 0.7f * deltaTimeSeconds);
+    glm::vec2 scale = mesh->getScale();
+    scale.x -= 0.7f * deltaTimeSeconds;
+    scale.y -= 0.7f * deltaTimeSeconds;
+    mesh->setScale(scale);
 
     if (mesh != nullptr)
     {
 		// Rend the shooter at the position of the corresponding placing in matrix
         modelMatrix = glm::mat3(1);
-        modelMatrix *= transformUtils::Translate(mesh->getPositionX(), mesh->getPositionY());
-        modelMatrix *= transformUtils::Translate(DEFAULT_SQUARE_SIDE / 2, 0);
-        modelMatrix *= transformUtils::Scale(mesh->getScaleX(), mesh->getScaleY());
-        modelMatrix *= transformUtils::Translate(-DEFAULT_SQUARE_SIDE / 2, 0);
+        modelMatrix *= transformUtils::Translate(mesh->getMovingPosition());
+        modelMatrix *= transformUtils::Translate(radius, 0);
+        modelMatrix *= transformUtils::Scale(mesh->getScale());
+        modelMatrix *= transformUtils::Translate(-radius, 0);
         RenderMesh2D(mesh->getMesh(), shaders["VertexColor"], modelMatrix);
 	}
 }
@@ -278,7 +293,7 @@ void InitClass::RendActiveShooters()
         {
             if (staticScene->getPlacing(i, j)->getTaken() && staticScene->getPlacing(i, j)->getVisibility())
             {
-                MeshWrapper* shooter = new MeshWrapper(
+                MeshWrapperShooter* shooter = new MeshWrapperShooter(
                     shapes::CreateShooter("shooterActive",
                     glm::vec3(0, 0, 2),
                     DEFAULT_SQUARE_SIDE * SHOOTER_SCALE, 
@@ -294,8 +309,11 @@ void InitClass::RendActiveShooters()
                 RenderMesh2D(shooter->getMesh(), shaders["VertexColor"], modelMatrix);
 
                 // Set position of the shooter
-                shooter->setPositionX((float)(MATRIX_CORNER_X + j * MATRIX_DISPLACEMENT + DEFAULT_SQUARE_SIDE / 8));
-                shooter->setPositionY((float)(MATRIX_CORNER_Y + MATRIX_DISPLACEMENT * i + DEFAULT_SQUARE_SIDE / 2));
+                glm::vec2 position;
+                position.x = (float)(MATRIX_CORNER_X + j * MATRIX_DISPLACEMENT + DEFAULT_SQUARE_SIDE / 8);
+                position.y = (float)(MATRIX_CORNER_Y + MATRIX_DISPLACEMENT * i + DEFAULT_SQUARE_SIDE / 2);
+                shooter->setPosition(position);
+                shooter->setMovingPosition(position);
 
                 // Add the shooter in the matrix of shooters
                 shootersMatrix[i][j] = shooter;
@@ -411,8 +429,12 @@ void InitClass::DetectBulletEnemyCollision()
 										nrOfHealthPoints++;
 									}
 								}
+                                
+                                // Set enemy as disapearing and add it to disappearing list
+                                lineEnemies[line][j]->setDisapearing(true);
+                                disapearingEnemies[line].push_back(lineEnemies[line][j]);
 
-								// Remove the enemy from the line
+                                // Remove the enemy from the line
 								lineEnemies[line].erase(lineEnemies[line].begin() + j);
 							}
                             // Set bullet properties
@@ -451,6 +473,31 @@ bool InitClass::LineContainsEnemyOfColor(int line, glm::vec3 color)
     return false;
 }
 
+void InitClass::RendDisapearingEnemies()
+{
+    // Rend the enemies from the disapearing lists
+    for (int line = 0; line < PLACINGS_SIZE; line++)
+    {
+        for (int i = 0; i < disapearingEnemies[line].size(); i++)
+        {
+            if (disapearingEnemies[line][i]->getDisapearing())
+            {
+				// Make a disapear animation for the enemy in the corresponding placing in the matrix of enemies
+                if (disapearingEnemies[line][i]->getDisappearSteps() > 0)
+                {
+					DisapearAnimation(currentTimer, disapearingEnemies[line][i], DEFAULT_ENEMY_SIZE / 2);
+					disapearingEnemies[line][i]->setDisappearSteps(disapearingEnemies[line][i]->getDisappearSteps() - 1);
+				}
+                else
+                {
+					// Remove the enemy from the disapearing list
+					disapearingEnemies[line].erase(disapearingEnemies[line].begin() + i);
+				}
+			}
+		}
+	}
+}
+
 void InitClass::RendDisapearingShooters()
 {
     // Rend the disapearing shooters
@@ -461,15 +508,14 @@ void InitClass::RendDisapearingShooters()
             if (staticScene->getPlacing(i, j)->getDisapearing() && staticScene->getPlacing(i, j)->getVisibility())
             {
                 // Make a disapear animation for the shooter in the corresponding placing in the matrix of shooters
-                if (disapearSteps > 0)
+                if (shootersMatrix[i][j]->getDisappearSteps() > 0)
                 {
-                    DisapearAnimationShooter(currentTimer, shootersMatrix[i][j], 1);
-                    disapearSteps--;
+                    DisapearAnimation(currentTimer, shootersMatrix[i][j], DEFAULT_SQUARE_SIDE / 2);
+                    shootersMatrix[i][j]->setDisappearSteps(shootersMatrix[i][j]->getDisappearSteps() - 1);
                 }
                 else
                 {
                     staticScene->getPlacing(i, j)->setDisapearing(false);
-                    disapearSteps = DISAPEAR_STEPS;
                     shootersMatrix[i][j] = nullptr;
                 }
             }
@@ -525,7 +571,7 @@ void InitClass::RendEnemies()
     {
         for (int i = 0; i < lineEnemies[line].size(); i++)
         {
-            if (lineEnemies[line][i]->getEnemyStarted() && !lineEnemies[line][i]->getEnemyIsDead())
+            if (lineEnemies[line][i]->getEnemyStarted() && !lineEnemies[line][i]->getEnemyIsDead() && !lineEnemies[line][i]->getDisapearing())
             {
 				// Increment translation of the moving enemy
 				glm::vec2 t = lineEnemies[line][i]->getTranslate();
@@ -609,6 +655,7 @@ void InitClass::Update(float deltaTimeSeconds)
     RendShootersCosts();
     DetectHitBarCollision();
     DetectBulletEnemyCollision();
+    RendDisapearingEnemies();
 }
 
 void InitClass::OnMouseBtnPress(int mouseX, int mouseY, int button, int mods)

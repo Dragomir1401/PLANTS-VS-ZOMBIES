@@ -4,7 +4,6 @@
 #include "lab_m1/tema1/StaticScene.hpp"
 #include "lab_m1/tema1/ColorUtils.hpp"
 
-#define DISAPEAR_STEPS 60
 #define TYPES_OF_SHOOTERS 4
 #define SCREEN_WIDTH 1280
 
@@ -37,11 +36,12 @@ namespace m1
         void RendShootersCosts();
         void GenerateEnemies();
         void Shoot();
-        void DisapearAnimationShooter(float deltaTimeSeconds, MeshWrapper* mesh, int displacementScale);
+        void DisapearAnimation(float deltaTimeSeconds, MeshWrapper* mesh, float radius);
         void RendShootingLine();
         void DetectHitBarCollision();
         void DetectBulletEnemyCollision();
         bool LineContainsEnemyOfColor(int line, glm::vec3 color);
+        void RendDisapearingEnemies();
 
     protected:
         double cx, cy;
@@ -60,11 +60,11 @@ namespace m1
         float currentTimer = 0;
         glm::vec3 holdingShooterColor;
         glm::vec3 releasedShooterColor;
-        MeshWrapper* shootersMatrix[PLACINGS_SIZE][PLACINGS_SIZE];
+        MeshWrapperShooter* shootersMatrix[PLACINGS_SIZE][PLACINGS_SIZE];
         float timedShooting[PLACINGS_SIZE][PLACINGS_SIZE];
-        int disapearSteps = DISAPEAR_STEPS;
         std::vector<MeshWrapperBullet*> lineBullets[PLACINGS_SIZE];
         std::vector<MeshWrapperEnemy*> lineEnemies[PLACINGS_SIZE];
+        std::vector<MeshWrapperEnemy*> disapearingEnemies[PLACINGS_SIZE];
         float lineEnemyTimer[PLACINGS_SIZE][TYPES_OF_SHOOTERS];
         float slowDownTimer = 0;
         float healthPointSpawnRate = 0;

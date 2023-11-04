@@ -5,6 +5,7 @@
 #include "lab_m1/tema1/TransformUtils.hpp"
 #include "lab_m1/tema1/Shapes.hpp"
 #include "lab_m1/tema1/MeshWrapper.hpp"
+#include "lab_m1/tema1/MeshWrapperShooter.hpp"
 #include "lab_m1/tema1/MeshWrapperBullet.hpp"
 #include "lab_m1/tema1/MeshWrapperEnemy.hpp"
 

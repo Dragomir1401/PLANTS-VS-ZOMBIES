@@ -1,5 +1,10 @@
 #include "MeshWrapper.hpp"
 
+MeshWrapper::MeshWrapper()
+{
+	mesh_ = new Mesh("mesh");
+}
+
 MeshWrapper::MeshWrapper(Mesh* mesh)
 {
 	mesh_ = mesh;
@@ -19,36 +24,6 @@ bool MeshWrapper::getVisibility() const
 	return visible_;
 }
 
-void MeshWrapper::setTaken(bool taken)
-{
-	isTaken_ = taken;
-}
-
-bool MeshWrapper::getTaken() const
-{
-	return isTaken_;
-}
-
-void MeshWrapper::setPositionX(float positionX)
-{
-	positionX_ = positionX;
-}
-
-float MeshWrapper::getPositionX() const
-{
-	return positionX_;
-}
-
-void MeshWrapper::setPositionY(float positionY)
-{
-	positionY_ = positionY;
-}
-
-float MeshWrapper::getPositionY() const
-{
-	return positionY_;
-}
-
 void MeshWrapper::setColor(glm::vec3 color)
 {
 	color_ = color;
@@ -66,72 +41,12 @@ Mesh* MeshWrapper::getMesh() const
 
 void MeshWrapper::setDisapearing(bool disapearing)
 {
-	isDisapearing_ = disapearing;
+	disapearing_ = disapearing;
 }
 
 bool MeshWrapper::getDisapearing() const
 {
-	return isDisapearing_;
-}
-
-void MeshWrapper::setScaleX(float scaleX)
-{
-	scaleX_ = scaleX;
-}
-
-float MeshWrapper::getScaleX() const
-{
-	return scaleX_;
-}
-
-void MeshWrapper::setScaleY(float scaleY)
-{
-	scaleY_ = scaleY;
-}
-
-float MeshWrapper::getScaleY() const
-{
-	return scaleY_;
-}
-
-void MeshWrapper::setShooterPower(int shooterPower)
-{
-	shooterPower_ = shooterPower;
-}
-
-int MeshWrapper::getShooterPower() const
-{
-	return shooterPower_;
-}
-
-void MeshWrapper::setBulletWasShot(bool bulletWasShot)
-{
-	bulletWasShot_ = bulletWasShot;
-}
-
-bool MeshWrapper::getBulletWasShot() const
-{
-	return bulletWasShot_;
-}
-
-void MeshWrapper::setTranslateX(float translateX)
-{
-	translateX_ = translateX;
-}
-
-float MeshWrapper::getTranslateX() const
-{
-	return translateX_;
-}
-
-void MeshWrapper::setAngularStep(float angularStep)
-{
-	angularStep_ = angularStep;
-}
-
-float MeshWrapper::getAngularStep() const
-{
-	return angularStep_;
+	return disapearing_;
 }
 
 void MeshWrapper::setTimeAccumulator(float timeAccumulator)
@@ -142,4 +57,74 @@ void MeshWrapper::setTimeAccumulator(float timeAccumulator)
 float MeshWrapper::getTimeAccumulator() const
 {
 	return timeAccumulator_;
+}
+
+glm::vec2 MeshWrapper::getPosition() const
+{
+	return position_;
+}
+
+void MeshWrapper::setPosition(float positionX, float positionY)
+{
+	position_ = glm::vec2(positionX, positionY);
+}
+
+void MeshWrapper::setPosition(glm::vec2 position)
+{
+	position_ = position;
+}
+
+void MeshWrapper::setScale(float scaleX, float scaleY)
+{
+	scale_ = glm::vec2(scaleX, scaleY);
+}
+
+void MeshWrapper::setScale(glm::vec2 scale)
+{
+	scale_ = scale;
+}
+
+glm::vec2 MeshWrapper::getScale() const
+{
+	return scale_;
+}
+
+void MeshWrapper::setMovingPosition(float positionX, float positionY)
+{
+	movingPosition_ = glm::vec2(positionX, positionY);
+}
+
+void MeshWrapper::setMovingPosition(glm::vec2 position)
+{
+	movingPosition_ = position;
+}
+
+glm::vec2 MeshWrapper::getMovingPosition() const
+{
+	return movingPosition_;
+}
+
+void MeshWrapper::setTranslate(float translateX, float translateY)
+{
+	translate_ = glm::vec2(translateX, translateY);
+}
+
+void MeshWrapper::setTranslate(glm::vec2 translate)
+{
+	translate_ = translate;
+}
+
+glm::vec2 MeshWrapper::getTranslate() const
+{
+	return translate_;
+}
+
+void MeshWrapper::setTaken(bool taken)
+{
+	taken_ = taken;
+}
+
+bool MeshWrapper::getTaken() const
+{
+	return taken_;
 }
