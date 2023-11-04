@@ -141,7 +141,14 @@ void InitClass::RendShooters()
 
         if (i >= PLACEHOLDERS_COUNT)
         {
-            modelMatrix *= transformUtils::Translate(DEFAULT_SQUARE_SIDE * SHOOTER_SCALE / 1.6, 0);
+            if (i == 4)
+            {
+                modelMatrix *= transformUtils::Translate(DEFAULT_SQUARE_SIDE * SPAWNER_SCALE, 0);
+            }
+            else if (i == 5)
+            {
+				modelMatrix *= transformUtils::Translate(DEFAULT_SQUARE_SIDE * CANNON_SCALE, 0);
+			}
         }
 
         if (!loweredLine && row)
@@ -238,21 +245,41 @@ void InitClass::Shoot()
     {
 		for (int j = 0; j < PLACINGS_SIZE; j++)
 		{
-			if (staticScene->getPlacing(i, j)->getTaken() && staticScene->getPlacing(i, j)->getVisibility() && !shootersMatrix[i][j]->getIsSpawner())
+			if (staticScene->getPlacing(i, j)->getTaken() && 
+                staticScene->getPlacing(i, j)->getVisibility() &&
+                !shootersMatrix[i][j]->getIsSpawner())
 			{   
                 glm::vec3 color = shootersMatrix[i][j]->getColor();
 
                 // Create bullets with a timer of 2 seconds
-                if (timedShooting[i][j] > colorUtils->GetBulletIntervalByColor(color) && LineContainsEnemyOfColor(i, color))
+                if (timedShooting[i][j] > colorUtils->GetBulletIntervalByColor(color) &&
+                    (LineContainsEnemyOfColor(i, color) ||
+                        (shootersMatrix[i][j]->getIsCannon() &&
+                         LineContainsEnemy(i))))
                 {
-                    MeshWrapperBullet* star = new MeshWrapperBullet(shapes::CreateStar("starShooting", glm::vec3(0, 0, 2), DEFAULT_BULLET_SIZE, color, true));
-                    star->setPosition(shootersMatrix[i][j]->getPosition().x + DEFAULT_BULLET_SIZE, shootersMatrix[i][j]->getPosition().y);
-                    star->setMovingPosition(shootersMatrix[i][j]->getPosition().x + DEFAULT_BULLET_SIZE, shootersMatrix[i][j]->getPosition().y);
-                    star->setColor(shootersMatrix[i][j]->getColor());
-                    star->setBulletWasShot(true);
-                    star->setShooterPower(shootersMatrix[i][j]->getShooterPower());
+                    MeshWrapperBullet* bullet = new MeshWrapperBullet(shapes::CreateStar(
+                                                                            "starShooting",
+                                                                            glm::vec3(0, 0, 2), 
+                                                                            DEFAULT_BULLET_SIZE,
+                                                                            color,
+                                                                            true));
+                    if (shootersMatrix[i][j]->getIsCannon())
+                    {
+                        bullet = new MeshWrapperBullet(shapes::CreateRocket(
+                                                                "starShooting",
+                                                                glm::vec3(0, 0, 2),
+                                                                DEFAULT_BULLET_SIZE,
+                                                                glm::vec3(1.0f, 1.0f, 1.0f), true));
+                        bullet->setIsRocket(true);
+                    }
+                    bullet->setPosition(shootersMatrix[i][j]->getPosition().x + DEFAULT_BULLET_SIZE, shootersMatrix[i][j]->getPosition().y);
+                    bullet->setMovingPosition(shootersMatrix[i][j]->getPosition().x + DEFAULT_BULLET_SIZE, shootersMatrix[i][j]->getPosition().y);
+                    bullet->setColor(shootersMatrix[i][j]->getColor());
+                    bullet->setBulletWasShot(true);
+                    bullet->setShooterPower(shootersMatrix[i][j]->getShooterPower());
 
-                    lineBullets[i].push_back(star);
+                    shootersMatrix[i][j]->setBulletCount(shootersMatrix[i][j]->getBulletCount() + 1);
+                    lineBullets[i].push_back(bullet);
 
                     timedShooting[i][j] = 0;
                 }
@@ -336,21 +363,27 @@ void InitClass::RendMovingShooter()
             if (pressedCorrectly && !releasedCorrectly)
             {
                 // Rend the shooter at the mouse coordinates
-                if (!isSimpleShooter)
-                {
-                    Mesh* mesh = shapes::CreateSpawner("shooterMouse", glm::vec3(0, 0, 2), DEFAULT_SQUARE_SIDE * SHOOTER_SCALE, holdingShooterColor, glm::vec3(1.0f, 1.0f, 1.0f), true);
-                    modelMatrix = glm::mat3(1);
-                    modelMatrix *= transformUtils::Translate((float)mouseX, (float)mouseY);
-                    RenderMesh2D(mesh, shaders["VertexColor"], modelMatrix);
-                }
-                else
+                if (isSimpleShooter)
                 {
                     Mesh* mesh = shapes::CreateShooter("shooterMouse", glm::vec3(0, 0, 2), DEFAULT_SQUARE_SIDE * SHOOTER_SCALE, holdingShooterColor, true);
                     modelMatrix = glm::mat3(1);
                     modelMatrix *= transformUtils::Translate((float)mouseX, (float)mouseY);
                     RenderMesh2D(mesh, shaders["VertexColor"], modelMatrix);
                 }
-                
+                else if (isSpawner)
+                {
+                    Mesh* mesh = shapes::CreateSpawner("shooterMouse", glm::vec3(0, 0, 2), DEFAULT_SQUARE_SIDE * SHOOTER_SCALE, holdingShooterColor, glm::vec3(1.0f, 1.0f, 1.0f), true);
+                    modelMatrix = glm::mat3(1);
+                    modelMatrix *= transformUtils::Translate((float)mouseX, (float)mouseY);
+                    RenderMesh2D(mesh, shaders["VertexColor"], modelMatrix);
+                } 
+                else if (isCannon)
+                {
+                    Mesh* mesh = shapes::CreateCannon("shooterMouse", glm::vec3(0, 0, 2), DEFAULT_SQUARE_SIDE * SHOOTER_SCALE, holdingShooterColor, glm::vec3(1.0f, 1.0f, 1.0f), true);
+					modelMatrix = glm::mat3(1);
+					modelMatrix *= transformUtils::Translate((float)mouseX, (float)mouseY);
+					RenderMesh2D(mesh, shaders["VertexColor"], modelMatrix);
+                }
             }
         }
     }
@@ -393,27 +426,45 @@ void InitClass::CreateActiveShooters()
                     shooter->setColor(staticScene->getPlacing(i, j)->getColor());
                     shooter->setShooterPower(colorUtils->SelectShootingPowerByColor(staticScene->getPlacing(i, j)->getColor()));
                 } 
-                else
+                else if (isSpawner)
                 {
                     shooter = new MeshWrapperShooter(
                         shapes::CreateSpawner("shooterActive",
-                            glm::vec3(0, 0, 2),
-                            DEFAULT_SQUARE_SIDE * SHOOTER_SCALE,
-                            staticScene->getPlacing(i, j)->getColor(),
-                            glm::vec3(1.0f, 1.0f, 1.0f),
-                            true));
+                        glm::vec3(0, 0, 2),
+                        DEFAULT_SQUARE_SIDE * SHOOTER_SCALE,
+                        staticScene->getPlacing(i, j)->getColor(),
+                        glm::vec3(1.0f, 1.0f, 1.0f),
+                        true));
                     shooter->setColor(staticScene->getPlacing(i, j)->getColor());
                     shooter->setShooterPower(colorUtils->SelectShootingPowerByColor(staticScene->getPlacing(i, j)->getColor()));
                     shooter->setIsSpawner(true);
+                }
+                else
+                {
+                    shooter = new MeshWrapperShooter(
+						shapes::CreateCannon("shooterActive",
+                        glm::vec3(0, 0, 2),
+                        DEFAULT_SQUARE_SIDE * SHOOTER_SCALE,
+                        staticScene->getPlacing(i, j)->getColor(),
+                        glm::vec3(1.0f, 1.0f, 1.0f),
+                        true));
+					shooter->setColor(staticScene->getPlacing(i, j)->getColor());
+					shooter->setShooterPower(colorUtils->SelectShootingPowerByColor(staticScene->getPlacing(i, j)->getColor()));
+                    shooter->setIsCannon(true);
                 }
 
                 // Set position of the shooter
                 glm::vec2 position;
                 position.x = (float)(MATRIX_CORNER_X + j * MATRIX_DISPLACEMENT + DEFAULT_SQUARE_SIDE / 8);
-                if (!isSimpleShooter)
+                if (isSpawner)
                 {
                     position.x += DEFAULT_SQUARE_SIDE / 3;
-                }
+                } 
+                if (isCannon)
+                {
+					position.x += DEFAULT_SQUARE_SIDE / 2;
+				}
+
                 position.y = (float)(MATRIX_CORNER_Y + MATRIX_DISPLACEMENT * i + DEFAULT_SQUARE_SIDE / 2);
                 shooter->setPosition(position);
                 shooter->setMovingPosition(position);
@@ -461,8 +512,11 @@ void InitClass::RendShootingLine()
                 position.x += currentTimer * 300;
                 lineBullets[line][i]->setMovingPosition(position);
 
-                //  Rotate the bullet around its center
-                modelMatrix *= transformUtils::Rotate(angularStep);
+                if (!lineBullets[line][i]->getIsRocket())
+                {
+                    //  Rotate the bullet around its center
+                    modelMatrix *= transformUtils::Rotate(angularStep);
+                }
 
                 // Render the bullet with the transformations
                 RenderMesh2D(lineBullets[line][i]->getMesh(), shaders["VertexColor"], modelMatrix);
@@ -518,7 +572,9 @@ void InitClass::DetectBulletEnemyCollision()
                     glm::vec3 colorBullet = lineBullets[line][i]->getColor();
                     glm::vec3 colorEnemy = lineEnemies[line][j]->getColor();
 
-                    if (lineEnemies[line][j]->getEnemyStarted() && !lineEnemies[line][j]->getEnemyIsDead() && colorBullet == colorEnemy)
+                    if (lineEnemies[line][j]->getEnemyStarted() &&
+                        !lineEnemies[line][j]->getEnemyIsDead() && 
+                        (colorBullet == colorEnemy || lineBullets[line][i]->getIsRocket()))
                     {
 						// Check if the bullet radius + enemy radius is greater than the distance between their centers
                         float distance = glm::distance(lineBullets[line][i]->getMovingPosition(), lineEnemies[line][j]->getMovingPosition());
@@ -579,6 +635,20 @@ bool InitClass::LineContainsEnemyOfColor(int line, glm::vec3 color)
             {
                 return true;
 			}
+		}
+	}
+
+    return false;
+}
+
+bool InitClass::LineContainsEnemy(int line)
+{
+    // Checks if there is an enemy on the line
+    for (int i = 0; i < lineEnemies[line].size(); i++)
+    {
+        if (lineEnemies[line][i]->getEnemyStarted() && !lineEnemies[line][i]->getEnemyIsDead())
+        {
+			return true;
 		}
 	}
 
@@ -799,6 +869,33 @@ bool InitClass::SpawnerIsOnTheTable()
     return false;
 }
 
+void InitClass::MakeShootersDisappear()
+{
+    // Make shooters dissapear from the table
+    // After 10 bullets if normal shooter, after 5 if cannon
+    for (int i = 0; i < PLACINGS_SIZE; i++)
+    {
+        for (int j = 0; j < PLACINGS_SIZE; j++)
+        {
+            if (staticScene->getPlacing(i, j)->getTaken() && staticScene->getPlacing(i, j)->getVisibility())
+            {
+                if (shootersMatrix[i][j]->getBulletCount() > 10 && !shootersMatrix[i][j]->getIsCannon())
+                {
+					staticScene->getPlacing(i, j)->setDisapearing(true);
+					staticScene->getPlacing(i, j)->setTaken(false);
+					createdShooter[i][j] = false;
+				}
+                else if (shootersMatrix[i][j]->getBulletCount() > 5 && shootersMatrix[i][j]->getIsCannon())
+                {
+					staticScene->getPlacing(i, j)->setDisapearing(true);
+					staticScene->getPlacing(i, j)->setTaken(false);
+					createdShooter[i][j] = false;
+				}
+			}
+		}
+	}
+}
+
 void InitClass::RendDisapearingShooters()
 {
     // Rend the disapearing shooters
@@ -933,7 +1030,15 @@ void InitClass::RendShootersCosts()
                 {
                     modelMatrixCopy *= transformUtils::Translate(DEFAULT_STAR_COST_SIZE, 0);
                 }
-                RenderMesh2D(shapes::CreateStar("starCost", glm::vec3(0, 0, 2), DEFAULT_STAR_COST_SIZE, glm::vec3(1.0f, 0.84f, 0.0f), true),
+                if (j == 5)
+                {
+                    break;
+                }
+                RenderMesh2D(shapes::CreateStar("starCost",
+                                                glm::vec3(0, 0, 2),
+                                                DEFAULT_STAR_COST_SIZE,
+                                                glm::vec3(1.0f, 0.84f, 0.0f), 
+                                                true),
                              shaders["VertexColor"],
                              modelMatrixCopy);
             }
@@ -990,6 +1095,7 @@ void InitClass::Update(float deltaTimeSeconds)
 
     DetectShooterEnemyCollision();
     RendDisapearingShooters();
+    MakeShootersDisappear();
 }
 
 void InitClass::OnMouseBtnPress(int mouseX, int mouseY, int button, int mods)
@@ -1011,6 +1117,8 @@ void InitClass::OnMouseBtnPress(int mouseX, int mouseY, int button, int mods)
             holdingShooterColor = colorUtils->SelectColor(i);
             pressedCorrectly = true;
             isSimpleShooter = true;
+            isSpawner = false;
+            isCannon = false;
         }
     }
 
@@ -1028,6 +1136,22 @@ void InitClass::OnMouseBtnPress(int mouseX, int mouseY, int button, int mods)
 			holdingShooterColor = colorUtils->SelectColor(i + PLACEHOLDERS_COUNT);
 			pressedCorrectly = true;
             isSimpleShooter = false;
+
+            if (i == 0)
+            {
+                isSpawner = true;
+                isCannon = false;
+            } 
+            else if (i == 1)
+            {
+            	isCannon = true;
+                isSpawner = false;
+            } 
+            else
+            {
+				isSpawner = false;
+				isCannon = false;
+			}
 		}
     }
 

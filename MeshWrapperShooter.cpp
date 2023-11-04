@@ -49,3 +49,24 @@ bool MeshWrapperShooter::getIsSpawner() const
 {
 	return isSpawner_;	
 }
+
+void MeshWrapperShooter::setIsCannon(bool isCannon)
+{
+	isCannon_ = isCannon;
+}
+
+bool MeshWrapperShooter::getIsCannon() const
+{
+	return isCannon_;
+}
+
+void MeshWrapperShooter::setBulletCount(int bulletCount)
+{
+	bulletCount_ = bulletCount;
+}
+
+int MeshWrapperShooter::getBulletCount() const
+{
+	return bulletCount_;
+}
+

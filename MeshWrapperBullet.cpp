@@ -48,3 +48,13 @@ bool MeshWrapperBullet::getBulletHitSomething() const
 {
 	return bulletHitSomething_;
 }
+
+void MeshWrapperBullet::setIsRocket(bool isRocket)
+{
+	isRocket_ = isRocket;
+}
+
+bool MeshWrapperBullet::getIsRocket() const
+{
+	return isRocket_;
+}

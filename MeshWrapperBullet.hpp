@@ -15,10 +15,13 @@ public:
 	float getAngularStep() const;
 	void setBulletHitSomething(bool bulletHitSomething);
 	bool getBulletHitSomething() const;
+	void setIsRocket(bool isRocket);
+	bool getIsRocket() const;
 
 private:
 	int shooterPower_ = 0;
 	bool bulletWasShot_ = false;
 	float angularStep_ = 0;
 	bool bulletHitSomething_ = false;
+	bool isRocket_ = false;
 };

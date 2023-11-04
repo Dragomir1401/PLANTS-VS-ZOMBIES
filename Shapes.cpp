@@ -347,4 +347,102 @@ Mesh* shapes::CreateSpawner(
     return spawner;
 }
 
+Mesh* shapes::CreateCannon(const std::string& name, glm::vec3 center, float length, glm::vec3 colorOutside, glm::vec3 colorInside, bool fill)
+{
+    glm::vec3 c = center;
+    float r = length / 10;
+    glm::vec3 c1 = center;
+    c1.z = 3;
+
+    std::vector<VertexFormat> vertices =
+    {
+        VertexFormat(c, colorOutside),
+        VertexFormat(c + glm::vec3(-8 * r, 5 * r, 0), colorOutside),
+        VertexFormat(c + glm::vec3(-2 * r, 5 * r, 0), colorOutside),
+        VertexFormat(c + glm::vec3(1 * r, 2 * r, 0), colorOutside),
+        VertexFormat(c + glm::vec3(6 * r, 5 * r, 0), colorOutside),
+        VertexFormat(c + glm::vec3(6 * r, -5 * r, 0), colorOutside),
+        VertexFormat(c + glm::vec3(1 * r, -2 * r, 0), colorOutside),
+        VertexFormat(c + glm::vec3(-2 * r, -5 * r, 0), colorOutside),
+        VertexFormat(c + glm::vec3(-8 * r, -5 * r, 0), colorOutside),
+
+        VertexFormat(c1, colorInside),
+        VertexFormat(c1 + glm::vec3(-4 * r, r, 0), colorInside),
+        VertexFormat(c1 + glm::vec3(3 * r, r, 0), colorInside),
+        VertexFormat(c1 + glm::vec3(4 * r, 0, 0), colorInside),
+        VertexFormat(c1 + glm::vec3(3 * r, -r, 0), colorInside),
+        VertexFormat(c1 + glm::vec3(-4 * r, -r, 0), colorInside),
+
+        VertexFormat(c1 + glm::vec3(-r, 2 * r, 0), colorInside),
+        VertexFormat(c1 + glm::vec3(0, 2 * r, 0), colorInside),
+        VertexFormat(c1 + glm::vec3(0, -2 * r, 0), colorInside),
+        VertexFormat(c1 + glm::vec3(-r, -2 * r, 0), colorInside),
+    };
+
+    Mesh* spawner = new Mesh(name);
+    std::vector<unsigned int> indices = { 0, 1, 2,
+                                          0, 2, 3,
+                                          0, 3, 4,
+                                          0, 4, 5,
+                                          0, 5, 6,
+                                          0, 6, 7,
+                                          0, 7, 8,
+                                          0, 8, 1,
+                                          9, 10, 11,
+                                          9, 11, 12,
+                                          9, 12, 13,
+                                          9, 13, 14,
+                                          9, 14, 10,  
+
+                                          9, 15, 16,
+                                          9, 17, 18,
+                                        };
+
+    if (!fill) {
+        spawner->SetDrawMode(GL_LINE_LOOP);
+    }
+
+    spawner->InitFromData(vertices, indices);
+    return spawner;
+}
+
+Mesh* shapes::CreateRocket(const std::string& name, glm::vec3 center, float length, glm::vec3 color, bool fill)
+{
+
+    glm::vec3 c = center;
+    float r = length / 10;
+
+    std::vector<VertexFormat> vertices =
+    {
+        VertexFormat(c, color),
+        VertexFormat(c + glm::vec3(-4 * r, r, 0), color),
+        VertexFormat(c + glm::vec3(3 * r, r, 0), color),
+        VertexFormat(c + glm::vec3(4 * r, 0, 0), color),
+        VertexFormat(c + glm::vec3(3 * r, -r, 0), color),
+        VertexFormat(c + glm::vec3(-4 * r, -r, 0), color),
+
+        VertexFormat(c + glm::vec3(-r, 2 * r, 0), color),
+        VertexFormat(c + glm::vec3(0, 2 * r, 0), color),
+        VertexFormat(c + glm::vec3(0, -2 * r, 0), color),
+        VertexFormat(c + glm::vec3(-r, -2 * r, 0), color),
+    };
+
+    Mesh* spawner = new Mesh(name);
+    std::vector<unsigned int> indices = { 0, 1, 2,
+                                          0, 2, 3,
+                                          0, 3, 4,
+                                          0, 4, 5,
+                                          0, 5, 1,
+                                          0, 6, 7,
+                                          0, 8, 9,
+                                        };
+
+    if (!fill) {
+        spawner->SetDrawMode(GL_LINE_LOOP);
+    }
+
+    spawner->InitFromData(vertices, indices);
+    return spawner;
+}
+
 

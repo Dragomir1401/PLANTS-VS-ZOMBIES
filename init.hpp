@@ -44,6 +44,7 @@ namespace m1
         void DetectHitBarCollision();
         void DetectBulletEnemyCollision();
         bool LineContainsEnemyOfColor(int line, glm::vec3 color);
+        bool LineContainsEnemy(int line);
         void RendDisapearingEnemies();
         void RendStartingCoins();
         void RendActiveShooters();
@@ -51,6 +52,7 @@ namespace m1
         void RendRandomCoins();
         void DetectShooterEnemyCollision();
         bool SpawnerIsOnTheTable();
+        void MakeShootersDisappear();
 
     protected:
         double cx, cy;
@@ -64,6 +66,8 @@ namespace m1
         bool pressedCorrectly = false;
         bool releasedCorrectly = false;
         bool isSimpleShooter = false;
+        bool isSpawner = false;
+        bool isCannon = false;
         bool holdingShooter = false;
         int releaseRow = -1;
         int releaseCol = -1;

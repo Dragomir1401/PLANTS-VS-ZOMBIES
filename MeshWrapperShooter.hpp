@@ -17,10 +17,16 @@ public:
 	bool getCostWasPaid() const;
 	void setIsSpawner(bool isSpawner);
 	bool getIsSpawner() const;
+	void setIsCannon(bool isCannon);
+	bool getIsCannon() const;
+	void setBulletCount(int bulletCount);
+	int getBulletCount() const;
 
 private:
 	int shooterPower_ = 0;
 	int disappearSteps_ = DISAPEAR_STEPS;
 	bool costWasPaid_ = false;
 	bool isSpawner_ = false;
+	bool isCannon_ = false;
+	int bulletCount_ = 0;
 };
