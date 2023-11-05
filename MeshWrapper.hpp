@@ -34,12 +34,16 @@ public:
 	bool getTaken() const;
 	void setAngularStep(float angularStep);
 	float getAngularStep() const;
+	void setFrozenPosition(float positionX, float positionY);
+	void setFrozenPosition(glm::vec2 position);
+	glm::vec2 getFrozenPosition() const;
 
 protected:
 	Mesh* mesh_;
 	bool visible_ = true;
 	glm::vec3 color_ = glm::vec3(0, 0, 0);
 	glm::vec2 position_ = glm::vec2(0, 0);
+	glm::vec2 frozenPosition_ = glm::vec2(0, 0);
 	glm::vec2 movingPosition_ = glm::vec2(0, 0);
 	glm::vec2 scale_ = glm::vec2(1, 1);
 	glm::vec2 translate_ = glm::vec2(0, 0);

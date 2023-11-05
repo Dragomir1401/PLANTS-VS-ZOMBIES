@@ -721,4 +721,56 @@ Mesh* shapes::CreateSnowCannon(const std::string& name, glm::vec3 center, float 
 }
 
 
+Mesh* shapes::CreateGameOverSymbol(const std::string& name, glm::vec3 center, float size, glm::vec3 color, bool fill) 
+{
+    float halfSize = size / 4.0f;
+
+    std::vector<VertexFormat> vertices = {
+        VertexFormat(center, color),
+
+        VertexFormat(center + glm::vec3(-halfSize, 0, 0), color),
+        VertexFormat(center + glm::vec3(-6 * halfSize, 3 * halfSize, 0), color),
+        VertexFormat(center + glm::vec3(-4 * halfSize, 5 * halfSize, 0), color),
+        VertexFormat(center + glm::vec3(0 * halfSize, 1 * halfSize, 0), color),
+        VertexFormat(center + glm::vec3(4 * halfSize, 5 * halfSize, 0), color),
+        VertexFormat(center + glm::vec3(6 * halfSize, 3 * halfSize, 0), color),
+        VertexFormat(center + glm::vec3(1 * halfSize, 0 * halfSize, 0), color),
+        VertexFormat(center + glm::vec3(6 * halfSize, -3 * halfSize, 0), color),
+        VertexFormat(center + glm::vec3(4 * halfSize, -5 * halfSize, 0), color),
+        VertexFormat(center + glm::vec3(0 * halfSize, -1 * halfSize, 0), color),
+        VertexFormat(center + glm::vec3(-4 * halfSize, -5 * halfSize, 0), color),
+        VertexFormat(center + glm::vec3(-6 * halfSize, -3 * halfSize, 0), color)
+    };
+
+    std::vector<unsigned int> indices = {
+                                            0, 1, 2,
+                                            0, 2, 3,
+                                            0, 3, 4,
+                                            0, 4, 5,
+                                            0, 5, 6,
+                                            0, 6, 7,
+                                            0, 7, 8,
+                                            0, 8, 9,
+                                            0, 9, 10,
+                                            0, 10, 11,
+                                            0, 11, 12,
+                                            0, 12, 1
+                                        };
+
+    Mesh* gameOverSymbol = new Mesh(name);
+
+    if (!fill) {
+        gameOverSymbol->SetDrawMode(GL_LINES);
+    }
+    else {
+        gameOverSymbol->SetDrawMode(GL_TRIANGLES); 
+    }
+
+    gameOverSymbol->InitFromData(vertices, indices);
+
+    return gameOverSymbol;
+}
+
+
+
 

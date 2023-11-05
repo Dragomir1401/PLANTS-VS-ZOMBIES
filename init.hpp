@@ -9,6 +9,7 @@
 #define COIN_SPAWN_RATE 3
 #define BIG_COIN_SPAWN_RATE 15
 #define SPAWNER_LIFE_TIME 10
+#define SCREEN_HEIGHT 720
 
 namespace m1
 {
@@ -59,6 +60,8 @@ namespace m1
         void UpdateEnemiesTimers(float deltaTimeSeconds);
         void UnfreezeEnemies();
         void IncreaseDifficulty();
+        void CheckGameOver();
+        void MakeGameOver();
 
     protected:
         double cx, cy;
@@ -97,5 +100,7 @@ namespace m1
         float difficultyTimer = 0;
         int nrOfHealthPoints = HEALTH_POINTS_COUNT;
         int nrOfCoins = DEFAULT_COINS_COUNT;
+        bool gameOver = false;
+        float enemyPositionTimer = 0;
     };
 }   // namespace m1

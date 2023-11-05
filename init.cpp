@@ -56,6 +56,8 @@ void InitClass::Init()
     healthPointSpawnRate = 0.0f;
     coinSpawnTimer = 0.0f;
     bigCoinTimer = 0.0f;
+    difficultyTimer = 0.0f;
+    enemyPositionTimer = 0.0f;
 
     staticScene = new StaticScene();
     colorUtils = new ColorUtils();
@@ -175,7 +177,6 @@ void InitClass::RendShooters()
             position.x = (float)(PLACEHOLDERS_X + DEFAULT_SQUARE_SIDE / 8 + SHOOTER_DISPLACEMENT * i);
             position.y = (float)(PLACEHOLDERS_Y + DEFAULT_SQUARE_SIDE / 2);
 
-            staticScene->getShooters()[i]->setPosition(position);
             staticScene->getShooters()[i]->setMovingPosition(position);
         }
     }
@@ -266,8 +267,8 @@ void InitClass::Shoot()
                 // Create bullets with a timer of 2 seconds
                 if (timedShooting[i][j] > colorUtils->GetBulletIntervalByColor(color) &&
                     (LineContainsEnemyOfColor(i, color) ||
-                        (shootersMatrix[i][j]->getIsCannon() || shootersMatrix[i][j]->getIsSnowCannon() &&
-                         LineContainsEnemy(i))))
+                        (shootersMatrix[i][j]->getIsCannon() || shootersMatrix[i][j]->getIsSnowCannon()) &&
+                         LineContainsEnemy(i)))
                 {
                     MeshWrapperBullet* bullet = new MeshWrapperBullet(shapes::CreateStar(
                                                                             "starShooting",
@@ -669,6 +670,8 @@ void InitClass::DetectBulletEnemyCollision()
                             {
                                 // Set enemy as frozen
                                 lineEnemies[line][j]->setIsFrozen(true);
+                                // Set position
+                                lineEnemies[line][j]->setFrozenPosition(lineEnemies[line][j]->getMovingPosition());
                             }
 
 							// Check if the enemy is dead
@@ -1103,10 +1106,14 @@ void InitClass::UnfreezeEnemies()
                 !lineEnemies[line][i]->getEnemyIsDead() && 
                 lineEnemies[line][i]->getIsFrozen())
             {
-                if (lineEnemies[line][i]->getTimeAccumulator() > 5.0f)
+                if (lineEnemies[line][i]->getTimeAccumulator() > 10.0f)
                 {
 					lineEnemies[line][i]->setIsFrozen(false);
 					lineEnemies[line][i]->setTimeAccumulator(0.0f);
+
+                    // Set position and moving position to frozen position
+                    lineEnemies[line][i]->setPosition(lineEnemies[line][i]->getFrozenPosition());
+                    lineEnemies[line][i]->setMovingPosition(lineEnemies[line][i]->getFrozenPosition());
 				}
 			}
 		}
@@ -1121,6 +1128,22 @@ void InitClass::IncreaseDifficulty()
 		colorUtils->IncreaseDifficulty();
 		difficultyTimer = 0.0f;
 	}
+}
+
+void InitClass::CheckGameOver()
+{
+    // Rend a game over message with survived time if we lost all health points
+    if (nrOfHealthPoints <= 0)
+    {
+        gameOver = true;
+	}
+}
+
+void InitClass::MakeGameOver()
+{
+    modelMatrix = glm::mat3(1);
+    modelMatrix *= transformUtils::Translate(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2);
+    RenderMesh2D(shapes::CreateGameOverSymbol("gameOver", glm::vec3(0, 0, 2), 200, glm::vec3(1.0f, 0.0f, 0.0f), true), shaders["VertexColor"], modelMatrix);
 }
 
 
@@ -1222,8 +1245,8 @@ void InitClass::RendEnemies()
 				glm::vec2 t = lineEnemies[line][i]->getTranslate();
 				t.x -= currentTimer * 100 * lineEnemies[line][i]->getEnemySpeed();
 				lineEnemies[line][i]->setTranslate(t);
-    
 				modelMatrix = glm::mat3(1);
+    
                 if (!lineEnemies[line][i]->getIsFrozen())
                 {
 				    modelMatrix *= transformUtils::Translate(lineEnemies[line][i]->getPosition());
@@ -1235,8 +1258,8 @@ void InitClass::RendEnemies()
                 }
                 else
                 {
-                    modelMatrix *= transformUtils::Translate(lineEnemies[line][i]->getMovingPosition());
-                }
+					modelMatrix *= transformUtils::Translate(lineEnemies[line][i]->getFrozenPosition());
+				}
 
 				// Render the bullet with the transformations
 				RenderMesh2D(lineEnemies[line][i]->getMesh(), shaders["VertexColor"], modelMatrix);
@@ -1313,63 +1336,72 @@ void InitClass::RendShootersCosts()
 
 void InitClass::Update(float deltaTimeSeconds)
 {
-    currentTimer = deltaTimeSeconds;
-    for (int i = 0; i < PLACINGS_SIZE; i++)
-	{
-		for (int j = 0; j < PLACINGS_SIZE; j++)
-		{
-			timedShooting[i][j] += deltaTimeSeconds;
-		}
-	}
-
-    for (int i = 0; i < PLACINGS_SIZE; i++)
+    if (!gameOver)
     {
-        for (int j = 0; j < TYPES_OF_SHOOTERS; j++)
+        currentTimer = deltaTimeSeconds;
+        for (int i = 0; i < PLACINGS_SIZE; i++)
         {
-			lineEnemyTimer[i][j] += deltaTimeSeconds;
-		}
+            for (int j = 0; j < PLACINGS_SIZE; j++)
+            {
+                timedShooting[i][j] += deltaTimeSeconds;
+            }
+        }
+
+        for (int i = 0; i < PLACINGS_SIZE; i++)
+        {
+            for (int j = 0; j < TYPES_OF_SHOOTERS; j++)
+            {
+                lineEnemyTimer[i][j] += deltaTimeSeconds;
+            }
+        }
+        slowDownTimer += deltaTimeSeconds;
+        healthPointSpawnRate += deltaTimeSeconds;
+        coinSpawnTimer += deltaTimeSeconds;
+        bigCoinTimer += deltaTimeSeconds;
+        difficultyTimer += deltaTimeSeconds;
+
+        RendPlacings();
+        RendHitBar();
+        RendShooters();
+        RendHealthPoints();
+        RendPlaceHolders();
+        RendMovingShooter();
+        CreateActiveShooters();
+        RendActiveShooters();
+        Shoot();
+        RendShootingLine();
+        GenerateEnemies();
+        RendEnemies();
+        RendShootersCosts();
+        DetectHitBarCollision();
+        DetectBulletEnemyCollision();
+        RendDisapearingEnemies();
+        RendStartingCoins();
+
+        UpdateEnemiesTimers(deltaTimeSeconds);
+
+        if (SpawnerIsOnTheTable() || nrOfCoins <= 3)
+        {
+            GenerateRandomCoins();
+            RendRandomCoins();
+        }
+        else
+        {
+            ClearRandomCoins();
+        }
+
+        DetectShooterEnemyCollision();
+        RendDisapearingShooters();
+        MakeShootersDisappear();
+        //UnfreezeEnemies();
+        IncreaseDifficulty();
+
+        CheckGameOver();
     }
-    slowDownTimer += deltaTimeSeconds;
-    healthPointSpawnRate += deltaTimeSeconds;
-    coinSpawnTimer += deltaTimeSeconds;
-    bigCoinTimer += deltaTimeSeconds;
-    difficultyTimer += deltaTimeSeconds;
-
-    RendPlacings();
-	RendHitBar();
-	RendShooters();
-	RendHealthPoints();
-	RendPlaceHolders();
-    RendMovingShooter();
-    CreateActiveShooters();
-    RendActiveShooters();
-    Shoot();
-    RendShootingLine();
-    GenerateEnemies();
-    RendEnemies();
-    RendShootersCosts();
-    DetectHitBarCollision();
-    DetectBulletEnemyCollision();
-    RendDisapearingEnemies();
-    RendStartingCoins();
-
-    UpdateEnemiesTimers(deltaTimeSeconds);
-
-    if (SpawnerIsOnTheTable())
-    {
-        GenerateRandomCoins();
-        RendRandomCoins();
-    } 
     else
     {
-        ClearRandomCoins();
+        MakeGameOver();
     }
-
-    DetectShooterEnemyCollision();
-    RendDisapearingShooters();
-    MakeShootersDisappear();
-    UnfreezeEnemies();
-    IncreaseDifficulty();
 }
 
 

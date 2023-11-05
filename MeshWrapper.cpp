@@ -138,3 +138,18 @@ float MeshWrapper::getAngularStep() const
 {
 	return angularStep_;
 }
+
+void MeshWrapper::setFrozenPosition(float positionX, float positionY)
+{
+	frozenPosition_ = glm::vec2(positionX, positionY);
+}
+
+void MeshWrapper::setFrozenPosition(glm::vec2 position)
+{
+	frozenPosition_ = position;
+}
+
+glm::vec2 MeshWrapper::getFrozenPosition() const
+{
+	return frozenPosition_;
+}
