@@ -21,6 +21,10 @@ public:
 	bool getIsCannon() const;
 	void setBulletCount(int bulletCount);
 	int getBulletCount() const;
+	void setIsEater(bool isEater);
+	bool getIsEater() const;
+	void setEatenCount(int eatenCount);
+	int getEatenCount() const;
 
 private:
 	int shooterPower_ = 0;
@@ -28,5 +32,7 @@ private:
 	bool costWasPaid_ = false;
 	bool isSpawner_ = false;
 	bool isCannon_ = false;
+	bool isEater_ = false;
 	int bulletCount_ = 0;
+	int eatenCount_ = 0;
 };

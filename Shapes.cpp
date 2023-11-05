@@ -408,7 +408,6 @@ Mesh* shapes::CreateCannon(const std::string& name, glm::vec3 center, float leng
 
 Mesh* shapes::CreateRocket(const std::string& name, glm::vec3 center, float length, glm::vec3 color, bool fill)
 {
-
     glm::vec3 c = center;
     float r = length / 10;
 
@@ -436,6 +435,97 @@ Mesh* shapes::CreateRocket(const std::string& name, glm::vec3 center, float leng
                                           0, 6, 7,
                                           0, 8, 9,
                                         };
+
+    if (!fill) {
+        spawner->SetDrawMode(GL_LINE_LOOP);
+    }
+
+    spawner->InitFromData(vertices, indices);
+    return spawner;
+}
+
+Mesh* shapes::CreateEater(const std::string& name, glm::vec3 center, float length, glm::vec3 colorOutside, glm::vec3 colorInside, bool fill)
+{
+    glm::vec3 c = center;
+    float r = length / 12;
+
+    std::vector<VertexFormat> vertices =
+    {
+        VertexFormat(c, colorOutside),
+        VertexFormat(c + glm::vec3(3 * r, 6.5 * r, 0), colorOutside),
+        VertexFormat(c + glm::vec3(1 * r, 8 * r, 0), colorOutside),
+        VertexFormat(c + glm::vec3(-1 * r, 7.5 * r, 0), colorOutside),
+        VertexFormat(c + glm::vec3(-6 * r, 7 * r, 0), colorOutside),
+        VertexFormat(c + glm::vec3(-3 * r, 5 * r, 0), colorOutside),
+        VertexFormat(c + glm::vec3(-8 * r, 6 * r, 0), colorOutside),
+        VertexFormat(c + glm::vec3(-4 * r, 5 * r, 0), colorOutside),
+        VertexFormat(c + glm::vec3(-5 * r, 3 * r, 0), colorOutside),
+        VertexFormat(c + glm::vec3(-6 * r, 2 * r, 0), colorOutside),
+        VertexFormat(c + glm::vec3(-6.5 * r, 0.5 * r, 0), colorOutside),
+        VertexFormat(c + glm::vec3(-6 * r, -1 * r, 0), colorOutside),
+        VertexFormat(c + glm::vec3(-5.5 * r, -1.5 * r, 0), colorOutside),
+        VertexFormat(c + glm::vec3(-5 * r, -4 * r, 0), colorOutside),
+        VertexFormat(c + glm::vec3(-4 * r, -5 * r, 0), colorOutside),
+        VertexFormat(c + glm::vec3(-2.5 * r, -5.5 * r, 0), colorOutside),
+        VertexFormat(c + glm::vec3(-1 * r, -6 * r, 0), colorOutside),
+        VertexFormat(c + glm::vec3(1 * r, -6 * r, 0), colorOutside),
+        VertexFormat(c + glm::vec3(3 * r, -5 * r, 0), colorOutside),
+        VertexFormat(c + glm::vec3(5 * r, -4 * r, 0), colorOutside),
+        VertexFormat(c + glm::vec3(4 * r, -2 * r, 0), colorOutside),
+        VertexFormat(c + glm::vec3(5 * r, -1 * r, 0), colorOutside),
+        VertexFormat(c + glm::vec3(4 * r, 0 * r, 0), colorOutside),
+        VertexFormat(c + glm::vec3(5 * r, 2 * r, 0), colorOutside),
+        VertexFormat(c + glm::vec3(4 * r, 2.5 * r, 0), colorOutside),
+        VertexFormat(c + glm::vec3(5 * r, 4 * r, 0), colorOutside),
+        VertexFormat(c + glm::vec3(3.5 * r, 5 * r, 0), colorOutside),
+        VertexFormat(c + glm::vec3(4 * r, 7 * r, 0), colorOutside),
+
+        VertexFormat(c + glm::vec3(3 * r, 9 * r, 1), colorInside),
+        VertexFormat(c + glm::vec3(5 * r, 8 * r, 1), colorInside),
+        VertexFormat(c + glm::vec3(5 * r, 5 * r, 1), colorInside),
+        VertexFormat(c + glm::vec3(7 * r, 3 * r, 1), colorInside),
+        VertexFormat(c + glm::vec3(6 * r, 1 * r, 1), colorInside),
+        VertexFormat(c + glm::vec3(7 * r, -1 * r, 1), colorInside),
+        VertexFormat(c + glm::vec3(6 * r, -3 * r, 1), colorInside),
+        VertexFormat(c + glm::vec3(5 * r, -7 * r, 1), colorInside),
+    };
+
+    Mesh* spawner = new Mesh(name);
+    std::vector<unsigned int> indices = { 0, 1, 2,
+                                          0, 2, 3,
+                                          0, 3, 4,
+                                          0, 4, 5,
+                                          0, 5, 1,
+                                          0, 6, 7,
+                                          0, 8, 9,
+                                          0, 9, 10,
+                                          0, 10, 11,
+                                          0, 11, 12,
+                                          0, 12, 13,
+                                          0, 13, 14,
+                                          0, 14, 15,
+                                          0, 15, 16,
+                                          0, 16, 17,
+                                          0, 17, 18,
+                                          0, 18, 19,
+                                          0, 19, 20,
+                                          0, 20, 21,
+                                          0, 21, 22,
+                                          0, 22, 23,
+                                          0, 23, 24,
+                                          0, 24, 25,
+                                          0, 25, 26,
+                                          0, 26, 27,
+                                          0, 27, 28,
+                                          0, 28, 29,
+                                          0, 29, 30,
+                                          0, 30, 31,
+                                          0, 31, 32,
+                                          0, 32, 33,
+                                          0, 33, 34,
+                                          0, 34, 35,
+                                          0, 35, 1
+                                       };
 
     if (!fill) {
         spawner->SetDrawMode(GL_LINE_LOOP);

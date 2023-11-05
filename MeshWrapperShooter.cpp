@@ -70,3 +70,22 @@ int MeshWrapperShooter::getBulletCount() const
 	return bulletCount_;
 }
 
+void MeshWrapperShooter::setIsEater(bool isEater)
+{
+	isEater_ = isEater;
+}
+
+bool MeshWrapperShooter::getIsEater() const
+{
+	return isEater_;
+}
+
+void MeshWrapperShooter::setEatenCount(int eatenCount)
+{
+	eatenCount_ = eatenCount;
+}
+
+int MeshWrapperShooter::getEatenCount() const
+{
+	return eatenCount_;
+}

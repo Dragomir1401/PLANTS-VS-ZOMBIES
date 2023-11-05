@@ -247,7 +247,8 @@ void InitClass::Shoot()
 		{
 			if (staticScene->getPlacing(i, j)->getTaken() && 
                 staticScene->getPlacing(i, j)->getVisibility() &&
-                !shootersMatrix[i][j]->getIsSpawner())
+                !shootersMatrix[i][j]->getIsSpawner() &&
+                !shootersMatrix[i][j]->getIsEater())
 			{   
                 glm::vec3 color = shootersMatrix[i][j]->getColor();
 
@@ -308,23 +309,23 @@ void InitClass::DisapearAnimation(float deltaTimeSeconds, MeshWrapper* mesh, flo
 	}
 }
 
-void InitClass::PulsingAnimation(float deltaTimeSeconds, MeshWrapper* mesh, float radius)
+void InitClass::PulsingAnimation(float deltaTimeSeconds, MeshWrapper* mesh, float radius, float treshold, float speed)
 {
     // Creates a pulsing animation like a heart beat
     glm::vec2 scale = mesh->getScale();
 
-    if (mesh->getTimeAccumulator() < 1.0f)
+    if (mesh->getTimeAccumulator() < treshold)
     {
-		scale.x -= 0.5f * deltaTimeSeconds;
-		scale.y -= 0.5f * deltaTimeSeconds;
+		scale.x -= speed * deltaTimeSeconds;
+		scale.y -= speed * deltaTimeSeconds;
 	}
     else
     {
-		scale.x += 0.5f * deltaTimeSeconds;
-		scale.y += 0.5f * deltaTimeSeconds;
+		scale.x += speed * deltaTimeSeconds;
+		scale.y += speed * deltaTimeSeconds;
 	}
 
-    if (mesh->getTimeAccumulator() > 2.0f)
+    if (mesh->getTimeAccumulator() > treshold)
     {
         mesh->setTimeAccumulator(0.0f);
     }
@@ -384,6 +385,13 @@ void InitClass::RendMovingShooter()
 					modelMatrix *= transformUtils::Translate((float)mouseX, (float)mouseY);
 					RenderMesh2D(mesh, shaders["VertexColor"], modelMatrix);
                 }
+                else if (isEater)
+                {
+                    Mesh* mesh = shapes::CreateEater("shooterMouse", glm::vec3(0, 0, 2), DEFAULT_SQUARE_SIDE * SHOOTER_SCALE, holdingShooterColor, glm::vec3(1.0f, 0.0f, 0.0f), true);
+					modelMatrix = glm::mat3(1);
+					modelMatrix *= transformUtils::Translate((float)mouseX, (float)mouseY);
+					RenderMesh2D(mesh, shaders["VertexColor"], modelMatrix);
+                }
             }
         }
     }
@@ -438,8 +446,21 @@ void InitClass::CreateActiveShooters()
                     shooter->setColor(staticScene->getPlacing(i, j)->getColor());
                     shooter->setShooterPower(colorUtils->SelectShootingPowerByColor(staticScene->getPlacing(i, j)->getColor()));
                     shooter->setIsSpawner(true);
+                } 
+                else if (isEater)
+                {
+                    shooter = new MeshWrapperShooter(
+                        shapes::CreateEater("shooterActive",
+                            glm::vec3(0, 0, 2),
+                            DEFAULT_SQUARE_SIDE * SHOOTER_SCALE,
+                            staticScene->getPlacing(i, j)->getColor(),
+                            glm::vec3(1.0f, 0.0f, 0.0f),
+                            true));
+                    shooter->setColor(staticScene->getPlacing(i, j)->getColor());
+                    shooter->setShooterPower(colorUtils->SelectShootingPowerByColor(staticScene->getPlacing(i, j)->getColor()));
+                    shooter->setIsEater(true);
                 }
-                else
+                else if (isCannon)
                 {
                     shooter = new MeshWrapperShooter(
 						shapes::CreateCannon("shooterActive",
@@ -464,6 +485,10 @@ void InitClass::CreateActiveShooters()
                 {
 					position.x += DEFAULT_SQUARE_SIDE / 2;
 				}
+                if (isEater)
+                {
+                    position.x += DEFAULT_SQUARE_SIDE / 2.5;
+                }
 
                 position.y = (float)(MATRIX_CORNER_Y + MATRIX_DISPLACEMENT * i + DEFAULT_SQUARE_SIDE / 2);
                 shooter->setPosition(position);
@@ -811,7 +836,7 @@ void InitClass::RendRandomCoins()
             {
                 // Make a pulsing animation for big coins
                 randomCoins[i]->setTimeAccumulator(randomCoins[i]->getTimeAccumulator() + currentTimer);
-				PulsingAnimation(currentTimer, randomCoins[i], (double)(DEFAULT_BULLET_SIZE * 1.5));
+				PulsingAnimation(currentTimer, randomCoins[i], (double)(DEFAULT_BULLET_SIZE * 1.5), 1.0f, 0.5f);
 			}
             else
             {
@@ -840,10 +865,38 @@ void InitClass::DetectShooterEnemyCollision()
 
                         if (distance < DEFAULT_ENEMY_SIZE / 2 + DEFAULT_SQUARE_SIDE * SHOOTER_SCALE / 2)
                         {
-							// Remove the shooter from the matrix of shooters
-                            staticScene->getPlacing(line, j)->setDisapearing(true);
-							staticScene->getPlacing(line, j)->setTaken(false);
-                            createdShooter[i][j] = false;
+                            if (!shootersMatrix[line][j]->getIsEater())
+                            {
+                                // Remove the shooter from the matrix of shooters
+                                staticScene->getPlacing(line, j)->setDisapearing(true);
+                                staticScene->getPlacing(line, j)->setTaken(false);
+                                createdShooter[i][j] = false;
+                            }
+                            else
+                            {
+                                // Let eater eat 2 enemies and make a pulsation animation when eating them
+                                if (shootersMatrix[line][j]->getEatenCount() < 2)
+                                {
+                                    // Make a pulsation animation for the shooter
+                                    shootersMatrix[line][j]->setTimeAccumulator(shootersMatrix[line][j]->getTimeAccumulator() + currentTimer);
+                                    PulsingAnimation(currentTimer, shootersMatrix[line][j], DEFAULT_SQUARE_SIDE * 30, 5.0f, 0.75f);
+
+									shootersMatrix[line][j]->setEatenCount(shootersMatrix[line][j]->getEatenCount() + 1);
+									lineEnemies[line][i]->setEnemyStarted(false);
+									lineEnemies[line][i]->setEnemyIsDead(true);
+									lineEnemies[line][i]->setDisapearing(true);
+									disapearingEnemies[line].push_back(lineEnemies[line][i]);
+									lineEnemies[line].erase(lineEnemies[line].begin() + i);
+
+								}
+                                else
+                                {
+									shootersMatrix[line][j]->setEatenCount(0);
+                                    staticScene->getPlacing(line, j)->setDisapearing(true);
+                                    staticScene->getPlacing(line, j)->setTaken(false);
+                                    createdShooter[i][j] = false;
+								}
+                            }
 						}
 					}
 				}
@@ -1024,16 +1077,23 @@ void InitClass::RendShootersCosts()
         if (staticScene->getPlaceHolders()[i]->getVisibility())
         {
             glm::mat3 modelMatrixCopy = modelMatrix;
-            for (int j = 0; j < i + 1; j++)
+            int nr = i;
+            if (i == 5)
+            {
+                nr = 4;
+            }
+            else if (i == 6)
+            {
+                nr = 0;
+            }
+
+            for (int j = 0; j <= nr; j++)
             {
                 if (j)
                 {
                     modelMatrixCopy *= transformUtils::Translate(DEFAULT_STAR_COST_SIZE, 0);
                 }
-                if (j == 5)
-                {
-                    break;
-                }
+
                 RenderMesh2D(shapes::CreateStar("starCost",
                                                 glm::vec3(0, 0, 2),
                                                 DEFAULT_STAR_COST_SIZE,
@@ -1119,6 +1179,7 @@ void InitClass::OnMouseBtnPress(int mouseX, int mouseY, int button, int mods)
             isSimpleShooter = true;
             isSpawner = false;
             isCannon = false;
+            isEater = false;
         }
     }
 
@@ -1141,17 +1202,26 @@ void InitClass::OnMouseBtnPress(int mouseX, int mouseY, int button, int mods)
             {
                 isSpawner = true;
                 isCannon = false;
+                isEater = false;
             } 
             else if (i == 1)
             {
             	isCannon = true;
                 isSpawner = false;
+                isEater = false;
             } 
-            else
+            else if (i == 2)
             {
+				isEater = true;
 				isSpawner = false;
 				isCannon = false;
-			}
+			} 
+            else 
+            {
+                isSpawner = false;
+                isCannon = false;
+                isEater = false;
+            }
 		}
     }
 

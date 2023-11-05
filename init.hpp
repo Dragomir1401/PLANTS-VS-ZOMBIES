@@ -39,7 +39,7 @@ namespace m1
         void GenerateEnemies();
         void Shoot();
         void DisapearAnimation(float deltaTimeSeconds, MeshWrapper* mesh, float radius);
-        void PulsingAnimation(float deltaTimeSeconds, MeshWrapper* mesh, float radius);
+        void PulsingAnimation(float deltaTimeSeconds, MeshWrapper* mesh, float radius, float threshold, float speed);
         void RendShootingLine();
         void DetectHitBarCollision();
         void DetectBulletEnemyCollision();
@@ -68,6 +68,7 @@ namespace m1
         bool isSimpleShooter = false;
         bool isSpawner = false;
         bool isCannon = false;
+        bool isEater = false;
         bool holdingShooter = false;
         int releaseRow = -1;
         int releaseCol = -1;
