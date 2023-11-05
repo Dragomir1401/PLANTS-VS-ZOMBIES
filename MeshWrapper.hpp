@@ -32,6 +32,8 @@ public:
 	glm::vec2 getTranslate() const;
 	void setTaken(bool taken);
 	bool getTaken() const;
+	void setAngularStep(float angularStep);
+	float getAngularStep() const;
 
 protected:
 	Mesh* mesh_;
@@ -41,6 +43,7 @@ protected:
 	glm::vec2 movingPosition_ = glm::vec2(0, 0);
 	glm::vec2 scale_ = glm::vec2(1, 1);
 	glm::vec2 translate_ = glm::vec2(0, 0);
+	float angularStep_ = 0;
 	float timeAccumulator_ = 0;
 	bool disapearing_ = false;
 	bool taken_ = false;

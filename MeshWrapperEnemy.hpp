@@ -14,8 +14,8 @@ public:
 	float getAngularStep() const;
 	void setEnemyStarted(bool enemyStarted);
 	bool getEnemyStarted() const;
-	void setEnemyHealth(int enemyHealth);
-	int getEnemyHealth() const;
+	void setEnemyHealth(float enemyHealth);
+	float getEnemyHealth() const;
 	void setEnemySpeed(float enemySpeed);
 	float getEnemySpeed() const;
 	void setEnemyIsDead(bool enemyIsDead);
@@ -29,7 +29,7 @@ public:
 
 private:
 	int shooterPower_ = 0;
-	int enemyHealth_ = 0;
+	float enemyHealth_ = 0;
 	float enemySpeed_ = 0;
 	bool enemyStarted_ = false;
 	float angularStep_ = 0;

@@ -820,6 +820,19 @@ void InitClass::RendActiveShooters()
                 modelMatrix *= transformUtils::Translate(shootersMatrix[i][j]->getPosition());
                 RenderMesh2D(shootersMatrix[i][j]->getMesh(), shaders["VertexColor"], modelMatrix);
 
+                // Increase timer of shooters[i][j]
+                shootersMatrix[i][j]->setTimeAccumulator(shootersMatrix[i][j]->getTimeAccumulator() + currentTimer);
+
+                // Dont rend spawners that surpased time limit of 6 seconds
+                if (shootersMatrix[i][j]->getIsSpawner() && shootersMatrix[i][j]->getTimeAccumulator() > SPAWNER_LIFE_TIME)
+                {
+					staticScene->getPlacing(i, j)->setTaken(false);
+					createdShooter[i][j] = false;
+					shootersMatrix[i][j] = nullptr;
+
+                    continue;
+				}
+
                 // Decrease coins by cost of shooter
                 if (!shootersMatrix[i][j]->getCostWasPaid())
                 {
@@ -950,7 +963,7 @@ void InitClass::DetectShooterEnemyCollision()
                                 {
                                     // Make a pulsation animation for the shooter
                                     shootersMatrix[line][j]->setTimeAccumulator(shootersMatrix[line][j]->getTimeAccumulator() + currentTimer);
-                                    PulsingAnimation(currentTimer, shootersMatrix[line][j], DEFAULT_SQUARE_SIDE * 30, 5.0f, 0.75f);
+                                    EatingAnimation(currentTimer, shootersMatrix[line][j], DEFAULT_SQUARE_SIDE * SPAWNER_SCALE / 10);
 
 									shootersMatrix[line][j]->setEatenCount(shootersMatrix[line][j]->getEatenCount() + 1);
 									lineEnemies[line][i]->setEnemyStarted(false);
@@ -1028,6 +1041,88 @@ void InitClass::MakeShootersDisappear()
 	}
 }
 
+void InitClass::ClearRandomCoins()
+{
+    // Clear the random coins list
+    for (int i = 0; i < randomCoins.size(); i++)
+    {
+        if (randomCoins[i]->getCoinWasCollected())
+        {
+			randomCoins.erase(randomCoins.begin() + i);
+		}
+	}
+}
+
+void InitClass::EatingAnimation(float deltaTimeSeconds, MeshWrapper* mesh, float radius)
+{
+    // Make a eating like animation using a sinusoidal function
+    float angularStep = mesh->getAngularStep() + deltaTimeSeconds;
+    mesh->setAngularStep(angularStep);
+
+    glm::vec2 scale = mesh->getScale();
+    scale.x = radius * (1 + sin(angularStep)) / 2;
+    scale.y = radius * (1 + sin(angularStep)) / 2;
+    mesh->setScale(scale);
+
+    glm::vec3 color = mesh->getColor();
+    color.r = (1 + sin(angularStep)) / 2;
+    color.g = (1 + sin(angularStep)) / 2;
+    color.b = (1 + sin(angularStep)) / 2;
+    mesh->setColor(color);
+
+    modelMatrix = glm::mat3(1);
+    modelMatrix *= transformUtils::Translate(mesh->getPosition());
+    modelMatrix *= transformUtils::Rotate(angularStep);
+    modelMatrix *= transformUtils::Scale(scale);
+    RenderMesh2D(mesh->getMesh(), shaders["VertexColor"], modelMatrix);
+}
+
+void InitClass::UpdateEnemiesTimers(float deltaTimeSeconds)
+{
+    // Increases all active enemies timers
+    for (int line = 0; line < PLACINGS_SIZE; line++)
+    {
+        for (int i = 0; i < lineEnemies[line].size(); i++)
+        {
+            if (lineEnemies[line][i]->getEnemyStarted() && !lineEnemies[line][i]->getEnemyIsDead())
+            {
+                lineEnemies[line][i]->setTimeAccumulator(lineEnemies[line][i]->getTimeAccumulator() + deltaTimeSeconds);
+            }
+        }
+    }
+}
+
+void InitClass::UnfreezeEnemies()
+{
+    // Unfreeze enemies after 5 seconds usign their internal timers
+    for (int line = 0; line < PLACINGS_SIZE; line++)
+    {
+        for (int i = 0; i < lineEnemies[line].size(); i++)
+        {
+            if (lineEnemies[line][i]->getEnemyStarted() &&
+                !lineEnemies[line][i]->getEnemyIsDead() && 
+                lineEnemies[line][i]->getIsFrozen())
+            {
+                if (lineEnemies[line][i]->getTimeAccumulator() > 5.0f)
+                {
+					lineEnemies[line][i]->setIsFrozen(false);
+					lineEnemies[line][i]->setTimeAccumulator(0.0f);
+				}
+			}
+		}
+	}
+}
+
+void InitClass::IncreaseDifficulty()
+{
+    // Every 10 seconds make enemies come in bigger numbers, faster and increase their health by a point
+    if (difficultyTimer > 10.0f)
+    {
+		colorUtils->IncreaseDifficulty();
+		difficultyTimer = 0.0f;
+	}
+}
+
 
 void InitClass::RendDisapearingShooters()
 {
@@ -1041,13 +1136,16 @@ void InitClass::RendDisapearingShooters()
                 // Make a disapear animation for the shooter in the corresponding placing in the matrix of shooters
                 if (shootersMatrix[i][j]->getDisappearSteps() > 0)
                 {
-                    if (shootersMatrix[i][j]->getIsEater() ||
-                        shootersMatrix[i][j]->getIsCannon() ||
+                    if (shootersMatrix[i][j]->getIsCannon() ||
                         shootersMatrix[i][j]->getIsSnowCannon() ||
                         shootersMatrix[i][j]->getIsSpawner())
                     {
                         DisapearAnimation(currentTimer, shootersMatrix[i][j], DEFAULT_SQUARE_SIDE / 8);
-                    }
+                    } 
+                    else if (shootersMatrix[i][j]->getIsEater())
+                    {
+						DisapearAnimation(currentTimer, shootersMatrix[i][j], DEFAULT_SQUARE_SIDE / 16);
+					}
                     else 
                     {
                         DisapearAnimation(currentTimer, shootersMatrix[i][j], DEFAULT_SQUARE_SIDE / 2);
@@ -1235,6 +1333,7 @@ void InitClass::Update(float deltaTimeSeconds)
     healthPointSpawnRate += deltaTimeSeconds;
     coinSpawnTimer += deltaTimeSeconds;
     bigCoinTimer += deltaTimeSeconds;
+    difficultyTimer += deltaTimeSeconds;
 
     RendPlacings();
 	RendHitBar();
@@ -1254,15 +1353,23 @@ void InitClass::Update(float deltaTimeSeconds)
     RendDisapearingEnemies();
     RendStartingCoins();
 
+    UpdateEnemiesTimers(deltaTimeSeconds);
+
     if (SpawnerIsOnTheTable())
     {
         GenerateRandomCoins();
         RendRandomCoins();
+    } 
+    else
+    {
+        ClearRandomCoins();
     }
 
     DetectShooterEnemyCollision();
     RendDisapearingShooters();
     MakeShootersDisappear();
+    UnfreezeEnemies();
+    IncreaseDifficulty();
 }
 
 

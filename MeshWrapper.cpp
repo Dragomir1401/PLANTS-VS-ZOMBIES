@@ -128,3 +128,13 @@ bool MeshWrapper::getTaken() const
 {
 	return taken_;
 }
+
+void MeshWrapper::setAngularStep(float angularStep)
+{
+	angularStep_ = angularStep;
+}
+
+float MeshWrapper::getAngularStep() const
+{
+	return angularStep_;
+}

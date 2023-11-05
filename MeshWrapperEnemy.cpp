@@ -39,12 +39,12 @@ bool MeshWrapperEnemy::getEnemyStarted() const
 	return enemyStarted_;
 }
 
-void MeshWrapperEnemy::setEnemyHealth(int enemyHealth)
+void MeshWrapperEnemy::setEnemyHealth(float enemyHealth)
 {
 	enemyHealth_ = enemyHealth;
 }
 
-int MeshWrapperEnemy::getEnemyHealth() const
+float MeshWrapperEnemy::getEnemyHealth() const
 {
 	return enemyHealth_;
 }

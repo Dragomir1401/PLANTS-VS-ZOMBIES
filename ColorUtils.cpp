@@ -8,7 +8,7 @@ m1::ColorUtils::~ColorUtils()
 {
 }
 
-int m1::ColorUtils::SelectHealthByColor(glm::vec3 color)
+float m1::ColorUtils::SelectHealthByColor(glm::vec3 color)
 {
     // Determines enemy health by color  
     // purple - big
@@ -17,19 +17,19 @@ int m1::ColorUtils::SelectHealthByColor(glm::vec3 color)
     // orange - small
     if (color == glm::vec3(1.0f, 0.5f, 0.0f))
     {
-        return 4;
+        return 4 * difficulty_;
     }
     else if (color == glm::vec3(0.0f, 0.0f, 1.0f))
     {
-        return 6;
+        return 6 * difficulty_;
     }
     else if (color == glm::vec3(1.0f, 1.0f, 0.0f))
     {
-        return 8;
+        return 8 * difficulty_;
     }
     else if (color == glm::vec3(0.6f, 0.0f, 1.0f))
     {
-        return 10;
+        return 10 * difficulty_;
     }
     else
     {
@@ -47,23 +47,23 @@ float m1::ColorUtils::SelectSpeedByColor(glm::vec3 color)
     // orange - small
     if (color == glm::vec3(1.0f, 0.5f, 0.0f))
     {
-        return 0.3f;
+        return 0.3f * difficulty_;
     }
     else if (color == glm::vec3(0.0f, 0.0f, 1.0f))
     {
-        return 0.3f;
+        return 0.3f * difficulty_;
     }
     else if (color == glm::vec3(1.0f, 1.0f, 0.0f))
     {
-        return 0.3f;
+        return 0.3f * difficulty_;
     }
     else if (color == glm::vec3(0.6f, 0.0f, 1.0f))
     {
-        return 0.3f;
+        return 0.3f * difficulty_;
     }
     else
     {
-        return 0.3f;
+        return 0.3f * difficulty_;
     }
 
 }
@@ -154,7 +154,7 @@ int m1::ColorUtils::GetShooterCostByColor(glm::vec3 color)
 int m1::ColorUtils::SelectRandomLine()
 {
     // Returns a random int between 0 and 3
-    return rand() % PLACINGS_SIZE;
+    return (rand() % PLACINGS_SIZE);
 }
 
 int m1::ColorUtils::GetTypeByColor(glm::vec3 color)
@@ -181,7 +181,7 @@ int m1::ColorUtils::GetTypeByColor(glm::vec3 color)
     }
 }
 
-int m1::ColorUtils::GetBulletIntervalByColor(glm::vec3 color)
+float m1::ColorUtils::GetBulletIntervalByColor(glm::vec3 color)
 {
     if (color == glm::vec3(1.0f, 0.5f, 0.0f))
     {
@@ -227,19 +227,19 @@ float m1::ColorUtils::GetSpawnIntervalByColor(glm::vec3 color)
 
     if (color == glm::vec3(1.0f, 0.5f, 0.0f))
     {
-        return 10.0f;
+        return 10.0f / difficulty_;
     }
     else if (color == glm::vec3(0.0f, 0.0f, 1.0f))
     {
-        return 14.0f;
+        return 14.0f / difficulty_;
     }
     else if (color == glm::vec3(1.0f, 1.0f, 0.0f))
     {
-        return 15.0f;
+        return 15.0f / difficulty_;
     }
     else if (color == glm::vec3(0.6f, 0.0f, 1.0f))
     {
-        return 16.0f;
+        return 16.0f / difficulty_;
     }
     else
     {
@@ -251,6 +251,11 @@ float m1::ColorUtils::getRandomFloat(float min, float max)
 {
     // Return random float between min and max
     return ((float)rand() / RAND_MAX) * (max - min) + min;
+}
+
+void m1::ColorUtils::IncreaseDifficulty()
+{
+    difficulty_ += 0.1f;
 }
 
 glm::vec3 m1::ColorUtils::getRandomColor()
