@@ -490,7 +490,7 @@ Mesh* shapes::CreateEater(const std::string& name, glm::vec3 center, float lengt
         VertexFormat(c + glm::vec3(5 * r, -7 * r, 1), colorInside),
     };
 
-    Mesh* spawner = new Mesh(name);
+    Mesh* eater = new Mesh(name);
     std::vector<unsigned int> indices = { 0, 1, 2,
                                           0, 2, 3,
                                           0, 3, 4,
@@ -528,11 +528,143 @@ Mesh* shapes::CreateEater(const std::string& name, glm::vec3 center, float lengt
                                        };
 
     if (!fill) {
-        spawner->SetDrawMode(GL_LINE_LOOP);
+        eater->SetDrawMode(GL_LINE_LOOP);
     }
 
-    spawner->InitFromData(vertices, indices);
-    return spawner;
+    eater->InitFromData(vertices, indices);
+    return eater;
 }
+
+Mesh* shapes::CreateSnowCannon(const std::string& name, glm::vec3 center, float length, glm::vec3 colorOutside, glm::vec3 colorInside, bool fill)
+{
+    glm::vec3 c = center;
+    float r = length / 12;
+
+    std::vector<VertexFormat> vertices =
+    {
+        VertexFormat(c, colorInside),
+
+        VertexFormat(c + glm::vec3(-0.5 * r, -5 * r, 0), colorOutside),
+        VertexFormat(c + glm::vec3(-2 * r, -5 * r, 0), colorOutside),
+        VertexFormat(c + glm::vec3(-1.7 * r, -3.5 * r, 0), colorOutside),
+        VertexFormat(c + glm::vec3(-2 * r, -3 * r, 0), colorOutside), // S
+
+        VertexFormat(c + glm::vec3(-3 * r, -3 * r, 0), colorOutside),
+        VertexFormat(c + glm::vec3(-4 * r, -4 * r, 0), colorOutside),
+        VertexFormat(c + glm::vec3(-5 * r, -3 * r, 0), colorOutside),
+        VertexFormat(c + glm::vec3(-6 * r, -3 * r, 0), colorOutside), // A
+
+        VertexFormat(c + glm::vec3(-5.3 * r, -2 * r, 0), colorOutside),
+        VertexFormat(c + glm::vec3(-6 * r, -0.5 * r, 0), colorOutside),
+        VertexFormat(c + glm::vec3(-4.2 * r, -0.4 * r, 0), colorOutside),
+        VertexFormat(c + glm::vec3(-4 * r, 0 * r, 0), colorOutside), // N
+
+        VertexFormat(c + glm::vec3(-4.4 * r, 0.6 * r, 0), colorOutside),
+        VertexFormat(c + glm::vec3(-6 * r, 1 * r, 0), colorOutside),
+        VertexFormat(c + glm::vec3(-5.4 * r, 2.1 * r, 0), colorOutside),
+        VertexFormat(c + glm::vec3(-6 * r, 3 * r, 0), colorOutside), // D
+
+        VertexFormat(c + glm::vec3(-5 * r, 3 * r, 0), colorOutside),
+        VertexFormat(c + glm::vec3(-4 * r, 4 * r, 0), colorOutside),
+        VertexFormat(c + glm::vec3(-3 * r, 3 * r, 0), colorOutside),
+        VertexFormat(c + glm::vec3(-2 * r, 3 * r, 0), colorOutside), // O
+
+        // Middle
+
+        VertexFormat(c + glm::vec3(-1.6 * r, 3.6 * r, 0), colorOutside),
+        VertexFormat(c + glm::vec3(-2 * r, 5 * r, 0), colorOutside),
+        VertexFormat(c + glm::vec3(-0.6 * r, 5.2 * r, 0), colorOutside),
+        VertexFormat(c + glm::vec3(0 * r, 6 * r, 0), colorOutside), // B
+
+        VertexFormat(c + glm::vec3(0.6 * r, 5.2 * r, 0), colorOutside),
+        VertexFormat(c + glm::vec3(2 * r, 5 * r, 0), colorOutside),
+        VertexFormat(c + glm::vec3(1.6 * r, 3.6 * r, 0), colorOutside),
+        VertexFormat(c + glm::vec3(2 * r, 3 * r, 0), colorOutside), // P
+
+        VertexFormat(c + glm::vec3(3 * r, 3 * r, 0), colorOutside),
+        VertexFormat(c + glm::vec3(4 * r, 4 * r, 0), colorOutside),
+        VertexFormat(c + glm::vec3(5 * r, 3 * r, 0), colorOutside),
+        VertexFormat(c + glm::vec3(6 * r, 3 * r, 0), colorOutside), // F
+
+        VertexFormat(c + glm::vec3(5.4 * r, 2.1 * r, 0), colorOutside),
+        VertexFormat(c + glm::vec3(6 * r, 1 * r, 0), colorOutside),
+        VertexFormat(c + glm::vec3(4.4 * r, 0.6 * r, 0), colorOutside),
+        VertexFormat(c + glm::vec3(4 * r, 0 * r, 0), colorOutside), // Q
+
+        VertexFormat(c + glm::vec3(4.2 * r, -0.4 * r, 0), colorOutside),
+        VertexFormat(c + glm::vec3(6 * r, -0.5 * r, 0), colorOutside),
+        VertexFormat(c + glm::vec3(5.3 * r, -2 * r, 0), colorOutside),
+        VertexFormat(c + glm::vec3(6 * r, -3 * r, 0), colorOutside), // C
+
+        VertexFormat(c + glm::vec3(5 * r, -3 * r, 0), colorOutside),
+        VertexFormat(c + glm::vec3(4 * r, -4 * r, 0), colorOutside),
+        VertexFormat(c + glm::vec3(3 * r, -3 * r, 0), colorOutside),
+        VertexFormat(c + glm::vec3(2 * r, -3 * r, 0), colorOutside), // R
+
+        VertexFormat(c + glm::vec3(1.7 * r, -3.5 * r, 0), colorOutside),
+        VertexFormat(c + glm::vec3(2 * r, -5 * r, 0), colorOutside),
+        VertexFormat(c + glm::vec3(0.5 * r, -5 * r, 0), colorOutside),
+        VertexFormat(c + glm::vec3(0 * r, -6 * r, 0), colorOutside), // E
+    };
+
+    Mesh* snowCanoon = new Mesh(name);
+    std::vector<unsigned int> indices = { 0, 1, 2,
+                                          0, 2, 3,
+                                          0, 3, 4,
+                                          0, 4, 5,
+                                          0, 5, 1,
+                                          0, 6, 7,
+                                          0, 7, 8,
+                                          0, 8, 9,
+                                          0, 9, 10,
+                                          0, 10, 11,
+                                          0, 11, 12,
+                                          0, 12, 13,
+                                          0, 13, 14,
+                                          0, 14, 15,
+                                          0, 15, 16,
+                                          0, 16, 17,
+                                          0, 17, 18,
+                                          0, 18, 19,
+                                          0, 19, 20,
+                                          0, 20, 21,
+                                          0, 21, 22,
+                                          0, 22, 23,
+                                          0, 23, 24,
+                                          0, 24, 25,
+                                          0, 25, 26,
+                                          0, 26, 27,
+                                          0, 27, 28,
+                                          0, 28, 29,
+                                          0, 29, 30,
+                                          0, 30, 31,
+                                          0, 31, 32,
+                                          0, 32, 33,
+                                          0, 33, 34,
+                                          0, 34, 35,
+                                          0, 35, 36,
+                                          0, 36, 37,
+                                          0, 37, 38,
+                                          0, 38, 39,
+                                          0, 39, 40,
+                                          0, 40, 41,
+                                          0, 41, 42,
+                                          0, 42, 43,
+                                          0, 43, 44,
+                                          0, 44, 45,
+                                          0, 45, 46,
+                                          0, 46, 47,
+                                          0, 47, 48,
+                                          0, 48, 1
+                                        };
+
+    if (!fill) {
+        snowCanoon->SetDrawMode(GL_LINE_LOOP);
+    }
+
+    snowCanoon->InitFromData(vertices, indices);
+    return snowCanoon;
+}
+
 
 

@@ -198,6 +198,7 @@ void InitClass::RendHealthPoints()
     }
 }
 
+
 void InitClass::RendPlaceHolders()
 {
     modelMatrix = glm::mat3(1);
@@ -238,6 +239,7 @@ void InitClass::RendPlaceHolders()
         }
     }
 }
+
 
 void InitClass::Shoot()
 {
@@ -289,6 +291,7 @@ void InitClass::Shoot()
     }
 }
 
+
 void InitClass::DisapearAnimation(float deltaTimeSeconds, MeshWrapper* mesh, float radius)
 {
     // Make a disapear animation for the shooter in the corresponding placing in the matrix of shooters
@@ -308,6 +311,7 @@ void InitClass::DisapearAnimation(float deltaTimeSeconds, MeshWrapper* mesh, flo
         RenderMesh2D(mesh->getMesh(), shaders["VertexColor"], modelMatrix);
 	}
 }
+
 
 void InitClass::PulsingAnimation(float deltaTimeSeconds, MeshWrapper* mesh, float radius, float treshold, float speed)
 {
@@ -343,6 +347,7 @@ void InitClass::PulsingAnimation(float deltaTimeSeconds, MeshWrapper* mesh, floa
 		RenderMesh2D(mesh->getMesh(), shaders["VertexColor"], modelMatrix);
 	}
 }
+
 
 void InitClass::RendMovingShooter()
 {
@@ -412,6 +417,7 @@ void InitClass::RendMovingShooter()
         releaseCol = -1;
     }
 }
+
 
 void InitClass::CreateActiveShooters()
 {
@@ -507,6 +513,7 @@ void InitClass::CreateActiveShooters()
     }
 }
 
+
 void InitClass::RendShootingLine()
 {
     for (int line = 0; line < PLACINGS_SIZE; line++)
@@ -550,6 +557,7 @@ void InitClass::RendShootingLine()
     }
 }
 
+
 void InitClass::DetectHitBarCollision()
 {
     for (int line = 0; line < PLACINGS_SIZE; line++)
@@ -581,6 +589,7 @@ void InitClass::DetectHitBarCollision()
 		}
 	}
 }
+
 
 void InitClass::DetectBulletEnemyCollision()
 {
@@ -649,6 +658,7 @@ void InitClass::DetectBulletEnemyCollision()
 	}
 }
 
+
 bool InitClass::LineContainsEnemyOfColor(int line, glm::vec3 color)
 {
     // Checks if there are enemies of color given on the line
@@ -666,6 +676,7 @@ bool InitClass::LineContainsEnemyOfColor(int line, glm::vec3 color)
     return false;
 }
 
+
 bool InitClass::LineContainsEnemy(int line)
 {
     // Checks if there is an enemy on the line
@@ -679,6 +690,7 @@ bool InitClass::LineContainsEnemy(int line)
 
     return false;
 }
+
 
 void InitClass::RendDisapearingEnemies()
 {
@@ -704,6 +716,7 @@ void InitClass::RendDisapearingEnemies()
 		}
 	}
 }
+
 
 void InitClass::RendStartingCoins()
 {
@@ -739,6 +752,7 @@ void InitClass::RendStartingCoins()
     }
 }
 
+
 void InitClass::RendActiveShooters()
 {
     // Rend the active shooters
@@ -772,6 +786,7 @@ void InitClass::RendActiveShooters()
         }
     }
 }
+
 
 void InitClass::GenerateRandomCoins()
 {
@@ -824,6 +839,7 @@ void InitClass::GenerateRandomCoins()
 	}
 }
 
+
 void InitClass::RendRandomCoins()
 {
     // Rend all coins from list
@@ -847,6 +863,7 @@ void InitClass::RendRandomCoins()
 		}
 	}
 }
+
 
 void InitClass::DetectShooterEnemyCollision()
 {
@@ -905,6 +922,7 @@ void InitClass::DetectShooterEnemyCollision()
 	}
 }
 
+
 bool InitClass::SpawnerIsOnTheTable()
 {
     // Checks if there is a spawner on the table shootersMatrix
@@ -921,6 +939,7 @@ bool InitClass::SpawnerIsOnTheTable()
 
     return false;
 }
+
 
 void InitClass::MakeShootersDisappear()
 {
@@ -949,6 +968,7 @@ void InitClass::MakeShootersDisappear()
 	}
 }
 
+
 void InitClass::RendDisapearingShooters()
 {
     // Rend the disapearing shooters
@@ -975,6 +995,7 @@ void InitClass::RendDisapearingShooters()
     }
 
 }
+
 
 void InitClass::GenerateEnemies()
 {
@@ -1017,6 +1038,7 @@ void InitClass::GenerateEnemies()
     slowDownTimer = 0.0f;
 }
 
+
 void InitClass::RendEnemies()
 {
     for (int line = 0; line < PLACINGS_SIZE; line++)
@@ -1045,6 +1067,7 @@ void InitClass::RendEnemies()
 		}
 	}
 }
+
 
 void InitClass::RendShootersCosts()
 {
@@ -1106,6 +1129,7 @@ void InitClass::RendShootersCosts()
     }
 }
 
+
 void InitClass::Update(float deltaTimeSeconds)
 {
     currentTimer = deltaTimeSeconds;
@@ -1157,6 +1181,7 @@ void InitClass::Update(float deltaTimeSeconds)
     RendDisapearingShooters();
     MakeShootersDisappear();
 }
+
 
 void InitClass::OnMouseBtnPress(int mouseX, int mouseY, int button, int mods)
 {
@@ -1281,6 +1306,7 @@ void InitClass::OnMouseBtnPress(int mouseX, int mouseY, int button, int mods)
 		}
 	}
 }
+
 
 void InitClass::OnMouseBtnRelease(int mouseX, int mouseY, int button, int mods)
 {

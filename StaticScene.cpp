@@ -98,6 +98,12 @@ namespace m1
         shooter = new MeshWrapper(shapes::CreateEater("eater", corner_, (float)(squareSide_ * SHOOTER_SCALE), colorOutside, colorInside, true));
         shooter->setColor(color);
         shooters_.push_back(shooter);
+
+        colorOutside = glm::vec3(0.7f, 0.7f, 0.9f);
+        colorInside = glm::vec3(1.0f, 1.0f, 1.0f);
+        shooter = new MeshWrapper(shapes::CreateSnowCannon("snowCannon", corner_, (float)(squareSide_ * SHOOTER_SCALE), colorOutside, colorInside, true));
+        shooter->setColor(color);
+        shooters_.push_back(shooter);
     }
 
     void StaticScene::CreateHealthPoints()
@@ -137,7 +143,10 @@ namespace m1
         placeHolder = new MeshWrapper(shapes::CreateSquare("placeHolder6", corner_, (float)squareSide_, color, false));
         placeHolders_.push_back(placeHolder);
 
-        placeHolder = new MeshWrapper(shapes::CreateSquare("placeHolder6", corner_, (float)squareSide_, color, false));
+        placeHolder = new MeshWrapper(shapes::CreateSquare("placeHolder7", corner_, (float)squareSide_, color, false));
+        placeHolders_.push_back(placeHolder);
+
+        placeHolder = new MeshWrapper(shapes::CreateSquare("placeHolder8", corner_, (float)squareSide_, color, false));
         placeHolders_.push_back(placeHolder);
     }
 
