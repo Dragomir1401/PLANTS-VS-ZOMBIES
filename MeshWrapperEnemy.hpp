@@ -24,6 +24,8 @@ public:
 	bool getIsHealthPoint() const;
 	void setDisappearSteps(int disappearSteps);
 	int getDisappearSteps() const;
+	void setIsFrozen(bool isFrozen);
+	bool getIsFrozen() const;
 
 private:
 	int shooterPower_ = 0;
@@ -34,4 +36,5 @@ private:
 	bool enemyIsDead_ = false;
 	bool isHealthPoint_ = false;
 	int dissapearSteps_ = DISAPEAR_STEPS;
+	bool isFrozen_ = false;
 };

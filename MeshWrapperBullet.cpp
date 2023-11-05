@@ -58,3 +58,13 @@ bool MeshWrapperBullet::getIsRocket() const
 {
 	return isRocket_;
 }
+
+void MeshWrapperBullet::setIsSnowball(bool isSnowball)
+{
+	isSnowball_ = isSnowball;
+}
+
+bool MeshWrapperBullet::getIsSnowball() const
+{
+	return isSnowball_;
+}

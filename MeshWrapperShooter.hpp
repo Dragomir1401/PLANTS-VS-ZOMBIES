@@ -25,6 +25,8 @@ public:
 	bool getIsEater() const;
 	void setEatenCount(int eatenCount);
 	int getEatenCount() const;
+	void setIsSnowCannon(bool isSnowCannon);
+	bool getIsSnowCannon() const;
 
 private:
 	int shooterPower_ = 0;
@@ -33,6 +35,7 @@ private:
 	bool isSpawner_ = false;
 	bool isCannon_ = false;
 	bool isEater_ = false;
+	bool isSnowCannon_ = false;
 	int bulletCount_ = 0;
 	int eatenCount_ = 0;
 };

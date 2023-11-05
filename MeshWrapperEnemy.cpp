@@ -89,4 +89,14 @@ int MeshWrapperEnemy::getDisappearSteps() const
 	return dissapearSteps_;
 }
 
+void MeshWrapperEnemy::setIsFrozen(bool isFrozen)
+{
+	isFrozen_ = isFrozen;
+}
+
+bool MeshWrapperEnemy::getIsFrozen() const
+{
+	return isFrozen_;
+}
+
 

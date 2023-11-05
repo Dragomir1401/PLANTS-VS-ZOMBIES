@@ -20,4 +20,5 @@ namespace shapes
     Mesh* CreateRocket(const std::string& name, glm::vec3 center, float length, glm::vec3 colorOutside, bool fill);
     Mesh* CreateEater(const std::string& name, glm::vec3 center, float length, glm::vec3 colorOutside, glm::vec3 colorInside, bool fill);
     Mesh* CreateSnowCannon(const std::string& name, glm::vec3 center, float length, glm::vec3 colorOutside, glm::vec3 colorInside, bool fill);
+    Mesh* CreateSnowBullet(const std::string& name, glm::vec3 center, float length, glm::vec3 colorOutside, glm::vec3 colorInside, bool fill);
 } // namespace shapes

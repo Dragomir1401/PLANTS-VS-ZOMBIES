@@ -17,6 +17,8 @@ public:
 	bool getBulletHitSomething() const;
 	void setIsRocket(bool isRocket);
 	bool getIsRocket() const;
+	void setIsSnowball(bool isSnowball);
+	bool getIsSnowball() const;
 
 private:
 	int shooterPower_ = 0;
@@ -24,4 +26,5 @@ private:
 	float angularStep_ = 0;
 	bool bulletHitSomething_ = false;
 	bool isRocket_ = false;
+	bool isSnowball_ = false;
 };

@@ -69,6 +69,7 @@ namespace m1
         bool isSpawner = false;
         bool isCannon = false;
         bool isEater = false;
+        bool isSnowCannon = false;
         bool holdingShooter = false;
         int releaseRow = -1;
         int releaseCol = -1;

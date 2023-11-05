@@ -90,6 +90,14 @@ int m1::ColorUtils::SelectShootingPowerByColor(glm::vec3 color)
     {
 		return 5;
 	}
+    else if (color == glm::vec3(0.0f, 0.5f, 0.0f))
+    {
+		return 1;
+	}
+    else if (color == glm::vec3(0.7f, 0.7f, 0.9f))
+    {
+		return 0;
+	}
     else
     {
         return 0;
@@ -133,6 +141,10 @@ int m1::ColorUtils::GetShooterCostByColor(glm::vec3 color)
     {
         return 1;
     }
+    else if (color == glm::vec3(0.7f, 0.7f, 0.9f))
+    {
+        return 3;
+	}
     else
     {
 		return 0;
@@ -191,6 +203,14 @@ int m1::ColorUtils::GetBulletIntervalByColor(glm::vec3 color)
     {
         return 4;
     }
+    else if (color == glm::vec3(0.0f, 0.5f, 0.0f))
+    {
+		return 6;
+	}
+    else if (color == glm::vec3(0.7f, 0.7f, 0.9f))
+    {
+		return 6;
+	}
     else
     {
         return 0;
@@ -275,6 +295,8 @@ glm::vec3 m1::ColorUtils::SelectColor(int index)
         return glm::vec3(0.1f, 0.5f, 0.5f);
     case 6:
         return glm::vec3(0.0f, 0.5f, 0.0f);
+    case 7:
+        return glm::vec3(0.7f, 0.7f, 0.9f);
     default:
         return glm::vec3(0, 0, 0);
     }

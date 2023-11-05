@@ -61,6 +61,7 @@ void InitClass::Init()
     colorUtils = new ColorUtils();
 }
 
+
 void InitClass::FrameStart()
 {
     // Clears the color buffer (using the previously set color) and depth buffer
@@ -72,6 +73,7 @@ void InitClass::FrameStart()
     glViewport(0, 0, resolution.x, resolution.y);
 }
  
+
 void InitClass::RendPlacings()
 {
     modelMatrix = glm::mat3(1);
@@ -101,6 +103,7 @@ void InitClass::RendPlacings()
     }
 }
 
+
 void InitClass::RendHitBar()
 {
     modelMatrix = glm::mat3(1);
@@ -117,6 +120,7 @@ void InitClass::RendHitBar()
         staticScene->getHitBar()->setPosition(position);
     }
 }
+
 
 void InitClass::RendShooters()
 {
@@ -148,7 +152,11 @@ void InitClass::RendShooters()
             else if (i == 5)
             {
 				modelMatrix *= transformUtils::Translate(DEFAULT_SQUARE_SIDE * CANNON_SCALE, 0);
-			}
+            }
+            else if (i == 7)
+            {
+                modelMatrix *= transformUtils::Translate(-DEFAULT_SQUARE_SIDE * SNOW_CANNON_SCALE, 0);
+            }
         }
 
         if (!loweredLine && row)
@@ -172,6 +180,7 @@ void InitClass::RendShooters()
         }
     }
 }
+
 
 void InitClass::RendHealthPoints()
 {
@@ -257,7 +266,7 @@ void InitClass::Shoot()
                 // Create bullets with a timer of 2 seconds
                 if (timedShooting[i][j] > colorUtils->GetBulletIntervalByColor(color) &&
                     (LineContainsEnemyOfColor(i, color) ||
-                        (shootersMatrix[i][j]->getIsCannon() &&
+                        (shootersMatrix[i][j]->getIsCannon() || shootersMatrix[i][j]->getIsSnowCannon() &&
                          LineContainsEnemy(i))))
                 {
                     MeshWrapperBullet* bullet = new MeshWrapperBullet(shapes::CreateStar(
@@ -275,6 +284,19 @@ void InitClass::Shoot()
                                                                 glm::vec3(1.0f, 1.0f, 1.0f), true));
                         bullet->setIsRocket(true);
                     }
+
+                    if (shootersMatrix[i][j]->getIsSnowCannon())
+                    {
+                        bullet = new MeshWrapperBullet(shapes::CreateSnowBullet(
+																"starShooting",
+																glm::vec3(0, 0, 2),
+																DEFAULT_BULLET_SIZE,
+                                                                glm::vec3(0.7f, 0.7f, 0.9f),
+																glm::vec3(1.0f, 1.0f, 1.0f), true));
+						bullet->setIsSnowball(true);
+					}
+
+
                     bullet->setPosition(shootersMatrix[i][j]->getPosition().x + DEFAULT_BULLET_SIZE, shootersMatrix[i][j]->getPosition().y);
                     bullet->setMovingPosition(shootersMatrix[i][j]->getPosition().x + DEFAULT_BULLET_SIZE, shootersMatrix[i][j]->getPosition().y);
                     bullet->setColor(shootersMatrix[i][j]->getColor());
@@ -318,7 +340,7 @@ void InitClass::PulsingAnimation(float deltaTimeSeconds, MeshWrapper* mesh, floa
     // Creates a pulsing animation like a heart beat
     glm::vec2 scale = mesh->getScale();
 
-    if (mesh->getTimeAccumulator() < treshold)
+    if (mesh->getTimeAccumulator() < treshold / 2)
     {
 		scale.x -= speed * deltaTimeSeconds;
 		scale.y -= speed * deltaTimeSeconds;
@@ -396,6 +418,13 @@ void InitClass::RendMovingShooter()
 					modelMatrix = glm::mat3(1);
 					modelMatrix *= transformUtils::Translate((float)mouseX, (float)mouseY);
 					RenderMesh2D(mesh, shaders["VertexColor"], modelMatrix);
+                } 
+                else if (isSnowCannon)
+                {
+                    Mesh* mesh = shapes::CreateSnowCannon("shooterMouse", glm::vec3(0, 0, 2), DEFAULT_SQUARE_SIDE * SHOOTER_SCALE, holdingShooterColor, glm::vec3(1.0f, 1.0f, 1.0f), true);
+                    modelMatrix = glm::mat3(1);
+                    modelMatrix *= transformUtils::Translate((float)mouseX, (float)mouseY);
+                    RenderMesh2D(mesh, shaders["VertexColor"], modelMatrix);
                 }
             }
         }
@@ -479,13 +508,26 @@ void InitClass::CreateActiveShooters()
 					shooter->setShooterPower(colorUtils->SelectShootingPowerByColor(staticScene->getPlacing(i, j)->getColor()));
                     shooter->setIsCannon(true);
                 }
+                else if (isSnowCannon)
+                {
+                    shooter = new MeshWrapperShooter(
+						shapes::CreateSnowCannon("shooterActive",
+                            							glm::vec3(0, 0, 2),
+                            							DEFAULT_SQUARE_SIDE * SHOOTER_SCALE,
+                            							staticScene->getPlacing(i, j)->getColor(),
+                            							glm::vec3(1.0f, 1.0f, 1.0f),
+                            							true));
+					shooter->setColor(staticScene->getPlacing(i, j)->getColor());
+					shooter->setShooterPower(colorUtils->SelectShootingPowerByColor(staticScene->getPlacing(i, j)->getColor()));
+					shooter->setIsSnowCannon(true);
+                }
 
                 // Set position of the shooter
                 glm::vec2 position;
                 position.x = (float)(MATRIX_CORNER_X + j * MATRIX_DISPLACEMENT + DEFAULT_SQUARE_SIDE / 8);
                 if (isSpawner)
                 {
-                    position.x += DEFAULT_SQUARE_SIDE / 3;
+                    position.x += DEFAULT_SQUARE_SIDE / 2.5;
                 } 
                 if (isCannon)
                 {
@@ -494,6 +536,10 @@ void InitClass::CreateActiveShooters()
                 if (isEater)
                 {
                     position.x += DEFAULT_SQUARE_SIDE / 2.5;
+                }
+                if (isSnowCannon)
+                {
+                    position.x += DEFAULT_SQUARE_SIDE / 3;
                 }
 
                 position.y = (float)(MATRIX_CORNER_Y + MATRIX_DISPLACEMENT * i + DEFAULT_SQUARE_SIDE / 2);
@@ -608,14 +654,22 @@ void InitClass::DetectBulletEnemyCollision()
 
                     if (lineEnemies[line][j]->getEnemyStarted() &&
                         !lineEnemies[line][j]->getEnemyIsDead() && 
-                        (colorBullet == colorEnemy || lineBullets[line][i]->getIsRocket()))
+                        (colorBullet == colorEnemy || lineBullets[line][i]->getIsRocket() || lineBullets[line][i]->getIsSnowball()))
                     {
 						// Check if the bullet radius + enemy radius is greater than the distance between their centers
                         float distance = glm::distance(lineBullets[line][i]->getMovingPosition(), lineEnemies[line][j]->getMovingPosition());
 
                         if (radiusSum > distance)
                         {
-							lineEnemies[line][j]->setEnemyHealth(lineEnemies[line][j]->getEnemyHealth() - lineBullets[line][i]->getShooterPower());
+                            if (!lineBullets[line][i]->getIsSnowball())
+                            { 
+							    lineEnemies[line][j]->setEnemyHealth(lineEnemies[line][j]->getEnemyHealth() - lineBullets[line][i]->getShooterPower());
+                            }
+                            else
+                            {
+                                // Set enemy as frozen
+                                lineEnemies[line][j]->setIsFrozen(true);
+                            }
 
 							// Check if the enemy is dead
                             if (lineEnemies[line][j]->getEnemyHealth() <= 0)
@@ -963,6 +1017,12 @@ void InitClass::MakeShootersDisappear()
 					staticScene->getPlacing(i, j)->setTaken(false);
 					createdShooter[i][j] = false;
 				}
+                else if (shootersMatrix[i][j]->getBulletCount() > 10 && shootersMatrix[i][j]->getIsSnowCannon())
+                {
+                    staticScene->getPlacing(i, j)->setDisapearing(true);
+                    staticScene->getPlacing(i, j)->setTaken(false);
+                    createdShooter[i][j] = false;
+                }
 			}
 		}
 	}
@@ -981,7 +1041,18 @@ void InitClass::RendDisapearingShooters()
                 // Make a disapear animation for the shooter in the corresponding placing in the matrix of shooters
                 if (shootersMatrix[i][j]->getDisappearSteps() > 0)
                 {
-                    DisapearAnimation(currentTimer, shootersMatrix[i][j], DEFAULT_SQUARE_SIDE / 2);
+                    if (shootersMatrix[i][j]->getIsEater() ||
+                        shootersMatrix[i][j]->getIsCannon() ||
+                        shootersMatrix[i][j]->getIsSnowCannon() ||
+                        shootersMatrix[i][j]->getIsSpawner())
+                    {
+                        DisapearAnimation(currentTimer, shootersMatrix[i][j], DEFAULT_SQUARE_SIDE / 8);
+                    }
+                    else 
+                    {
+                        DisapearAnimation(currentTimer, shootersMatrix[i][j], DEFAULT_SQUARE_SIDE / 2);
+                    }
+
                     shootersMatrix[i][j]->setDisappearSteps(shootersMatrix[i][j]->getDisappearSteps() - 1);
                 }
                 else
@@ -1045,7 +1116,9 @@ void InitClass::RendEnemies()
     {
         for (int i = 0; i < lineEnemies[line].size(); i++)
         {
-            if (lineEnemies[line][i]->getEnemyStarted() && !lineEnemies[line][i]->getEnemyIsDead() && !lineEnemies[line][i]->getDisapearing())
+            if (lineEnemies[line][i]->getEnemyStarted() &&
+                !lineEnemies[line][i]->getEnemyIsDead() &&
+                !lineEnemies[line][i]->getDisapearing())
             {
 				// Increment translation of the moving enemy
 				glm::vec2 t = lineEnemies[line][i]->getTranslate();
@@ -1053,13 +1126,19 @@ void InitClass::RendEnemies()
 				lineEnemies[line][i]->setTranslate(t);
     
 				modelMatrix = glm::mat3(1);
-				modelMatrix *= transformUtils::Translate(lineEnemies[line][i]->getPosition());
-				modelMatrix *= transformUtils::Translate(t);
-
-				// Set moving position
-				glm::vec2 position = lineEnemies[line][i]->getMovingPosition();
-				position.x -= currentTimer * 100 * lineEnemies[line][i]->getEnemySpeed();
-				lineEnemies[line][i]->setMovingPosition(position);
+                if (!lineEnemies[line][i]->getIsFrozen())
+                {
+				    modelMatrix *= transformUtils::Translate(lineEnemies[line][i]->getPosition());
+				    modelMatrix *= transformUtils::Translate(t);
+				    // Set moving position
+				    glm::vec2 position = lineEnemies[line][i]->getMovingPosition();
+				    position.x -= currentTimer * 100 * lineEnemies[line][i]->getEnemySpeed();
+				    lineEnemies[line][i]->setMovingPosition(position);
+                }
+                else
+                {
+                    modelMatrix *= transformUtils::Translate(lineEnemies[line][i]->getMovingPosition());
+                }
 
 				// Render the bullet with the transformations
 				RenderMesh2D(lineEnemies[line][i]->getMesh(), shaders["VertexColor"], modelMatrix);
@@ -1108,6 +1187,10 @@ void InitClass::RendShootersCosts()
             else if (i == 6)
             {
                 nr = 0;
+            }
+            else if (i == 7)
+            {
+                nr = 2;
             }
 
             for (int j = 0; j <= nr; j++)
@@ -1205,6 +1288,7 @@ void InitClass::OnMouseBtnPress(int mouseX, int mouseY, int button, int mods)
             isSpawner = false;
             isCannon = false;
             isEater = false;
+            isSnowCannon = false;
         }
     }
 
@@ -1228,24 +1312,28 @@ void InitClass::OnMouseBtnPress(int mouseX, int mouseY, int button, int mods)
                 isSpawner = true;
                 isCannon = false;
                 isEater = false;
+                isSnowCannon = false;
             } 
             else if (i == 1)
             {
             	isCannon = true;
                 isSpawner = false;
                 isEater = false;
+                isSnowCannon = false;
             } 
             else if (i == 2)
             {
 				isEater = true;
 				isSpawner = false;
 				isCannon = false;
+                isSnowCannon = false;
 			} 
-            else 
+            else if (i == 3)
             {
                 isSpawner = false;
                 isCannon = false;
                 isEater = false;
+                isSnowCannon = true;
             }
 		}
     }

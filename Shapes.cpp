@@ -535,7 +535,7 @@ Mesh* shapes::CreateEater(const std::string& name, glm::vec3 center, float lengt
     return eater;
 }
 
-Mesh* shapes::CreateSnowCannon(const std::string& name, glm::vec3 center, float length, glm::vec3 colorOutside, glm::vec3 colorInside, bool fill)
+Mesh* shapes::CreateSnowBullet(const std::string& name, glm::vec3 center, float length, glm::vec3 colorOutside, glm::vec3 colorInside, bool fill)
 {
     glm::vec3 c = center;
     float r = length / 12;
@@ -607,7 +607,7 @@ Mesh* shapes::CreateSnowCannon(const std::string& name, glm::vec3 center, float 
         VertexFormat(c + glm::vec3(0 * r, -6 * r, 0), colorOutside), // E
     };
 
-    Mesh* snowCanoon = new Mesh(name);
+    Mesh* snowBullet = new Mesh(name);
     std::vector<unsigned int> indices = { 0, 1, 2,
                                           0, 2, 3,
                                           0, 3, 4,
@@ -659,11 +659,65 @@ Mesh* shapes::CreateSnowCannon(const std::string& name, glm::vec3 center, float 
                                         };
 
     if (!fill) {
-        snowCanoon->SetDrawMode(GL_LINE_LOOP);
+        snowBullet->SetDrawMode(GL_LINE_LOOP);
     }
 
-    snowCanoon->InitFromData(vertices, indices);
-    return snowCanoon;
+    snowBullet->InitFromData(vertices, indices);
+    return snowBullet;
+}
+
+Mesh* shapes::CreateSnowCannon(const std::string& name, glm::vec3 center, float length, glm::vec3 colorOutside, glm::vec3 colorInside, bool fill)
+{
+    glm::vec3 c = center;
+    float r = length / 8;
+
+    std::vector<VertexFormat> vertices =
+    {
+        VertexFormat(c, colorOutside),
+        VertexFormat(c + glm::vec3(-4 * r, 1 * r, 0), colorOutside),
+        VertexFormat(c + glm::vec3(-2 * r, 2 * r, 0), colorOutside),
+        VertexFormat(c + glm::vec3(0 * r, 4 * r, 0), colorOutside),
+        VertexFormat(c + glm::vec3(2 * r, 4 * r, 0), colorOutside),
+        VertexFormat(c + glm::vec3(4 * r, 2 * r, 0), colorOutside), // C
+
+        VertexFormat(c + glm::vec3(6 * r, 2 * r, 0), colorOutside),
+        VertexFormat(c + glm::vec3(6 * r, 1 * r, 0), colorOutside),
+
+        VertexFormat(c + glm::vec3(6 * r, 0 * r, 0), colorOutside),
+        VertexFormat(c + glm::vec3(6 * r, -1 * r, 0), colorOutside),
+        VertexFormat(c + glm::vec3(6 * r, -2 * r, 0), colorOutside),
+
+        VertexFormat(c + glm::vec3(4 * r, -3 * r, 0), colorOutside),
+        VertexFormat(c + glm::vec3(-2 * r, -3 * r, 0), colorOutside),
+        VertexFormat(c + glm::vec3(-4 * r, -1 * r, 0), colorOutside),
+
+        VertexFormat(c, colorInside)
+    };
+
+    Mesh* snowCannon = new Mesh(name);
+    std::vector<unsigned int> indices = { 0, 1, 2,
+                                          0, 2, 3,
+                                          0, 3, 4,
+                                          14, 4, 5,
+                                          14, 5, 7,
+                                          14, 6, 7,
+                                          14, 8, 9,
+                                          14, 9, 10,
+                                          14, 8, 11,
+                                          0, 9, 10,
+                                          0, 10, 11,
+                                          0, 11, 12,
+                                          0, 12, 13,
+                                          0, 13, 1
+										};
+
+
+    if (!fill) {
+        snowCannon->SetDrawMode(GL_LINE_LOOP);
+    }
+
+    snowCannon->InitFromData(vertices, indices);
+    return snowCannon;
 }
 
 

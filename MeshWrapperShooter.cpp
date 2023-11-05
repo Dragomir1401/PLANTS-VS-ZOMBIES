@@ -89,3 +89,13 @@ int MeshWrapperShooter::getEatenCount() const
 {
 	return eatenCount_;
 }
+
+void MeshWrapperShooter::setIsSnowCannon(bool isSnowCannon)
+{
+	isSnowCannon_ = isSnowCannon;
+}
+
+bool MeshWrapperShooter::getIsSnowCannon() const
+{
+	return isSnowCannon_;
+}
