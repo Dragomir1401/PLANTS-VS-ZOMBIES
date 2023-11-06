@@ -206,8 +206,9 @@ Mesh* shapes::CreateHexagon(
 {
     glm::vec3 c = center;
     float r = length / 2;
+    c.z = 3;
     glm::vec3 c1 = center;
-    c1.z = 3;
+    c1.z = 4;
     float scale = 1.5;
 
     std::vector<VertexFormat> vertices =
@@ -770,7 +771,3 @@ Mesh* shapes::CreateGameOverSymbol(const std::string& name, glm::vec3 center, fl
 
     return gameOverSymbol;
 }
-
-
-
-

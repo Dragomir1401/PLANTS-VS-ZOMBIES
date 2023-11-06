@@ -949,17 +949,20 @@ void InitClass::DetectShooterEnemyCollision()
                     if (staticScene->getPlacing(line, j)->getTaken() && staticScene->getPlacing(line, j)->getVisibility())
                     {
 						float distance = glm::distance(lineEnemies[line][i]->getMovingPosition(), shootersMatrix[line][j]->getMovingPosition());
+                        glm::vec3 colorEnemy = lineEnemies[line][i]->getColor();
+                        glm::vec3 colorShooter = shootersMatrix[line][j]->getColor();
 
                         if (distance < DEFAULT_ENEMY_SIZE / 2 + DEFAULT_SQUARE_SIDE * SHOOTER_SCALE / 2)
                         {
-                            if (!shootersMatrix[line][j]->getIsEater())
+                            if (!shootersMatrix[line][j]->getIsEater() &&
+                                (colorEnemy == colorShooter || shootersMatrix[line][j]->getIsCannon() || shootersMatrix[line][j]->getIsSnowCannon() || shootersMatrix[line][j]->getIsSpawner()))
                             {
                                 // Remove the shooter from the matrix of shooters
                                 staticScene->getPlacing(line, j)->setDisapearing(true);
                                 staticScene->getPlacing(line, j)->setTaken(false);
                                 createdShooter[i][j] = false;
                             }
-                            else
+                            else if (shootersMatrix[line][j]->getIsEater())
                             {
                                 // Let eater eat 2 enemies and make a pulsation animation when eating them
                                 if (shootersMatrix[line][j]->getEatenCount() < 2)
