@@ -1,7 +1,7 @@
 #pragma once
 #include "components/simple_scene.h"
 #include "lab_m1/tema1/MeshWrapper.hpp"
-#define DISAPEAR_STEPS 60
+#define DISAPEAR_STEPS 30
 
 
 class MeshWrapperShooter : public MeshWrapper

@@ -259,6 +259,8 @@ void InitClass::Shoot()
 		{
 			if (staticScene->getPlacing(i, j)->getTaken() && 
                 staticScene->getPlacing(i, j)->getVisibility() &&
+                shootersMatrix[i][j] != nullptr &&
+                createdShooter[i][j] &&
                 !shootersMatrix[i][j]->getIsSpawner() &&
                 !shootersMatrix[i][j]->getIsEater())
 			{   
@@ -817,7 +819,7 @@ void InitClass::RendActiveShooters()
     {
         for (int j = 0; j < PLACINGS_SIZE; j++)
         {
-            if (staticScene->getPlacing(i, j)->getTaken() && staticScene->getPlacing(i, j)->getVisibility() && createdShooter[i][j])
+            if (staticScene->getPlacing(i, j)->getTaken() && staticScene->getPlacing(i, j)->getVisibility() && createdShooter[i][j] && shootersMatrix[i][j] != nullptr)
             {
                 modelMatrix = glm::mat3(1);
                 modelMatrix *= transformUtils::Translate(shootersMatrix[i][j]->getPosition());
@@ -946,7 +948,7 @@ void InitClass::DetectShooterEnemyCollision()
             {
                 for (int j = 0; j < PLACINGS_SIZE; j++)
                 {
-                    if (staticScene->getPlacing(line, j)->getTaken() && staticScene->getPlacing(line, j)->getVisibility())
+                    if (staticScene->getPlacing(line, j)->getTaken() && staticScene->getPlacing(line, j)->getVisibility() && shootersMatrix[line][j] != nullptr && createdShooter[line][j])
                     {
 						float distance = glm::distance(lineEnemies[line][i]->getMovingPosition(), shootersMatrix[line][j]->getMovingPosition());
                         glm::vec3 colorEnemy = lineEnemies[line][i]->getColor();
@@ -1022,7 +1024,7 @@ void InitClass::MakeShootersDisappear()
     {
         for (int j = 0; j < PLACINGS_SIZE; j++)
         {
-            if (staticScene->getPlacing(i, j)->getTaken() && staticScene->getPlacing(i, j)->getVisibility())
+            if (staticScene->getPlacing(i, j)->getTaken() && staticScene->getPlacing(i, j)->getVisibility() && shootersMatrix[i][j] != nullptr && createdShooter[i][j])
             {
                 if (shootersMatrix[i][j]->getBulletCount() > 10 && !shootersMatrix[i][j]->getIsCannon())
                 {
@@ -1036,7 +1038,7 @@ void InitClass::MakeShootersDisappear()
 					staticScene->getPlacing(i, j)->setTaken(false);
 					createdShooter[i][j] = false;
 				}
-                else if (shootersMatrix[i][j]->getBulletCount() > 10 && shootersMatrix[i][j]->getIsSnowCannon())
+                else if (shootersMatrix[i][j]->getBulletCount() > 7 && shootersMatrix[i][j]->getIsSnowCannon())
                 {
                     staticScene->getPlacing(i, j)->setDisapearing(true);
                     staticScene->getPlacing(i, j)->setTaken(false);
