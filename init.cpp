@@ -26,6 +26,9 @@ InitClass::~InitClass()
 
 void InitClass::Init()
 {
+    glClearColor(0, 0, 0, 1);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
     glm::ivec2 resolution = window->GetResolution();
     auto camera = GetSceneCamera();
     camera->SetOrthographic(0, (float)resolution.x, 0, (float)resolution.y, 0.01f, 400);
@@ -61,6 +64,44 @@ void InitClass::Init()
 
     staticScene = new StaticScene();
     colorUtils = new ColorUtils();
+
+    // Create shader
+    const string sourceTextureDir = PATH_JOIN(window->props.selfDir, SOURCE_PATH::M1, "tema1", "textures");
+    Shader* shader = new Shader("textureShader");
+    shader->AddShader(PATH_JOIN(window->props.selfDir, SOURCE_PATH::M1, "tema1", "shaders", "VertexShader.glsl"), GL_VERTEX_SHADER);
+    shader->AddShader(PATH_JOIN(window->props.selfDir, SOURCE_PATH::M1, "tema1", "shaders", "FragmentShader.glsl"), GL_FRAGMENT_SHADER);
+    shader->CreateAndLink();
+    shaders[shader->GetName()] = shader;
+
+    // Create a texture object for grass1
+    Texture2D* texture1 = new Texture2D();
+    texture1->Load2D(PATH_JOIN(sourceTextureDir, "dirt.png").c_str(), GL_REPEAT);
+    mapTextures["grass1"] = texture1;
+
+    // Create a texture object for grass2
+    Texture2D* texture2 = new Texture2D();
+    texture2->Load2D(PATH_JOIN(sourceTextureDir, "dirt.png").c_str(), GL_REPEAT);
+    mapTextures["grass2"] = texture2;
+
+    // Create a texture object for health point1
+    Texture2D* texture3 = new Texture2D();
+    texture3->Load2D(PATH_JOIN(sourceTextureDir, "heartM.png").c_str(), GL_REPEAT);
+    mapTextures["health_point1"] = texture3;
+
+    // Create a texture object for health point2
+    Texture2D* texture4 = new Texture2D();
+    texture4->Load2D(PATH_JOIN(sourceTextureDir, "heartM.png").c_str(), GL_REPEAT);
+    mapTextures["health_point2"] = texture4;
+
+    // Create a texture object for bullet 1
+    Texture2D* texture5 = new Texture2D();
+    texture5->Load2D(PATH_JOIN(sourceTextureDir, "particle2.png").c_str(), GL_REPEAT);
+    mapTextures["bullet1"] = texture5;
+
+    // Create a texture object for bullet 2
+    Texture2D* texture6 = new Texture2D();
+    texture6->Load2D(PATH_JOIN(sourceTextureDir, "particle2.png").c_str(), GL_REPEAT);
+    mapTextures["bullet2"] = texture6;
 }
 
 
@@ -75,6 +116,50 @@ void InitClass::FrameStart()
     glViewport(0, 0, resolution.x, resolution.y);
 }
  
+void InitClass::RenderTexturedMesh(Mesh* mesh, Shader* shader, const glm::mat4& modelMatrix, Texture2D* texture1, Texture2D* texture2)
+{
+    if (!mesh || !shader || !shader->GetProgramID())
+        return;
+
+    // Render an object using the specified shader and the specified position
+    glUseProgram(shader->program);
+
+    // Bind model matrix
+    GLint loc_model_matrix = glGetUniformLocation(shader->program, "Model");
+    glUniformMatrix4fv(loc_model_matrix, 1, GL_FALSE, glm::value_ptr(modelMatrix));
+
+    // Bind view matrix
+    glm::mat4 viewMatrix = GetSceneCamera()->GetViewMatrix();
+    int loc_view_matrix = glGetUniformLocation(shader->program, "View");
+    glUniformMatrix4fv(loc_view_matrix, 1, GL_FALSE, glm::value_ptr(viewMatrix));
+
+    // Bind projection matrix
+    glm::mat4 projectionMatrix = GetSceneCamera()->GetProjectionMatrix();
+    int loc_projection_matrix = glGetUniformLocation(shader->program, "Projection");
+    glUniformMatrix4fv(loc_projection_matrix, 1, GL_FALSE, glm::value_ptr(projectionMatrix));
+
+    // TODO(student): Set any other shader uniforms that you need
+    int loc_texture_1 = glGetUniformLocation(shader->program, "texture_1");
+    int loc_texture_2 = glGetUniformLocation(shader->program, "texture_2");
+
+    if (texture1)
+    {
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, texture1->GetTextureID());
+        glUniform1i(loc_texture_1, 0);
+    }
+
+    if (texture2)
+    {
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, texture2->GetTextureID());
+        glUniform1i(loc_texture_2, 1);
+    }
+
+    // Draw the object
+    glBindVertexArray(mesh->GetBuffers()->m_VAO);
+    glDrawElements(mesh->GetDrawMode(), static_cast<int>(mesh->indices.size()), GL_UNSIGNED_INT, 0);
+}
 
 void InitClass::RendPlacings()
 {
@@ -93,7 +178,17 @@ void InitClass::RendPlacings()
 
             if (staticScene->getPlacing(i, j)->getVisibility())
             {
-				RenderMesh2D(staticScene->getPlacing(i, j)->getMesh(), shaders["VertexColor"], modelMatrix);
+                // Render the mesh with the shader
+                glm::mat4 model = glm::mat4(
+                    modelMatrix[0][0], modelMatrix[0][1], modelMatrix[0][2], 0.f,
+                    modelMatrix[1][0], modelMatrix[1][1], modelMatrix[1][2], 0.f,
+                    0.f, 0.f, modelMatrix[2][2], 0.f,
+                    modelMatrix[2][0], modelMatrix[2][1], 0.f, 1.f);
+
+                RenderTexturedMesh(staticScene->getPlacing(i, j)->getMesh(),
+                                   shaders["textureShader"], model,
+                                   mapTextures["grass1"],
+                                   mapTextures["grass2"]);
 
                 // Set position of the placing
                 glm::vec2 position;
@@ -196,7 +291,16 @@ void InitClass::RendHealthPoints()
 
         if (staticScene->getHealthPoints()[i]->getVisibility())
         {
-			RenderMesh2D(staticScene->getHealthPoints()[i]->getMesh(), shaders["VertexColor"], modelMatrix);
+            // Render the mesh with the shader
+            glm::mat4 model = glm::mat4(
+                modelMatrix[0][0], modelMatrix[0][1], modelMatrix[0][2], 0.f,
+                modelMatrix[1][0], modelMatrix[1][1], modelMatrix[1][2], 0.f,
+                0.f, 0.f, modelMatrix[2][2], 0.f,
+                modelMatrix[2][0], modelMatrix[2][1], 0.f, 1.f);
+            RenderTexturedMesh(staticScene->getHealthPoints()[i]->getMesh(),
+                							   shaders["textureShader"], model,
+                							   mapTextures["health_point1"],
+                							   mapTextures["health_point2"]);
 
             // Set position of the health point
             glm::vec2 position;
@@ -599,8 +703,16 @@ void InitClass::RendShootingLine()
                     modelMatrix *= transformUtils::Rotate(angularStep);
                 }
 
-                // Render the bullet with the transformations
-                RenderMesh2D(lineBullets[line][i]->getMesh(), shaders["VertexColor"], modelMatrix);
+                // Render the bullet with the transformations and the texture
+                glm::mat4 model = glm::mat4(
+                    modelMatrix[0][0], modelMatrix[0][1], modelMatrix[0][2], 0.f,
+                    modelMatrix[1][0], modelMatrix[1][1], modelMatrix[1][2], 0.f,
+                    0.f, 0.f, modelMatrix[2][2], 0.f,
+                    modelMatrix[2][0], modelMatrix[2][1], 0.f, 1.f);
+                RenderTexturedMesh(lineBullets[line][i]->getMesh(),
+                    								   shaders["textureShader"], model,
+                    								   mapTextures["bullet1"],
+                    								   mapTextures["bullet2"]);
             }
         }
     }
@@ -1150,7 +1262,6 @@ void InitClass::MakeGameOver()
     modelMatrix *= transformUtils::Translate(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2);
     RenderMesh2D(shapes::CreateGameOverSymbol("gameOver", glm::vec3(0, 0, 2), 200, glm::vec3(1.0f, 0.0f, 0.0f), true), shaders["VertexColor"], modelMatrix);
 }
-
 
 void InitClass::RendDisapearingShooters()
 {

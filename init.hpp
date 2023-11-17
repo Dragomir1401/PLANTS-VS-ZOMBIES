@@ -62,6 +62,7 @@ namespace m1
         void IncreaseDifficulty();
         void CheckGameOver();
         void MakeGameOver();
+        void RenderTexturedMesh(Mesh* mesh, Shader* shader, const glm::mat4& modelMatrix, Texture2D* texture1, Texture2D* texture2);
 
     protected:
         double cx, cy;
@@ -102,5 +103,6 @@ namespace m1
         int nrOfCoins = DEFAULT_COINS_COUNT;
         bool gameOver = false;
         float enemyPositionTimer = 0;
+        std::unordered_map<std::string, Texture2D*> mapTextures;
     };
 }   // namespace m1

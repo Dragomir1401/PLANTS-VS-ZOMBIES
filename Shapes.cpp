@@ -16,22 +16,27 @@ Mesh* shapes::CreateSquare(
 
     std::vector<VertexFormat> vertices =
     {
-        VertexFormat(corner, color),
-        VertexFormat(corner + glm::vec3(length, 0, 0), color),
-        VertexFormat(corner + glm::vec3(length, length, 0), color),
-        VertexFormat(corner + glm::vec3(0, length, 0), color)
+        VertexFormat(corner, color, glm::vec3(0, 1, 0), glm::vec2(0.0f, 0.0f)), // Bottom-left
+        VertexFormat(corner + glm::vec3(length, 0, 0), color, glm::vec3(0, 1, 0), glm::vec2(1.0f, 0.0f)), // Bottom-right
+        VertexFormat(corner + glm::vec3(length, length, 0), color, glm::vec3(0, 1, 0), glm::vec2(1.0f, 1.0f)), // Top-right
+        VertexFormat(corner + glm::vec3(0, length, 0), color, glm::vec3(0, 1, 0), glm::vec2(0.0f, 1.0f)) // Top-left
     };
 
+
     Mesh* square = new Mesh(name);
-    std::vector<unsigned int> indices = { 0, 1, 2, 3 };
+    std::vector<unsigned int> indices;
 
     if (!fill) {
         square->SetDrawMode(GL_LINE_LOOP);
+        indices = { 0, 1, 2, 3 };
     }
     else {
-        // Draw 2 triangles. Add the remaining 2 indices
-        indices.push_back(0);
-        indices.push_back(2);
+        // Draw 2 triangles. Define indices for the triangles.
+        indices = {
+            0, 1, 2,    // First triangle
+            0, 2, 3     // Second triangle
+        };
+        square->SetDrawMode(GL_TRIANGLES);
     }
 
     square->InitFromData(vertices, indices);
@@ -119,16 +124,27 @@ Mesh* shapes::CreateHeart(
     bool fill)
 {
     glm::vec3 corner = leftBottomCorner;
+    // Define texture coordinates for each vertex
+    // These are placeholders and might need to be tweaked
+    glm::vec2 texCoordA(0.0f, -0.25f);
+    glm::vec2 texCoordB(0.0f, 0.0f);
+    glm::vec2 texCoordC(0.25f, 0.25f);
+    glm::vec2 texCoordD(0.5f, 0.0f);
+    glm::vec2 texCoordE(0.75f, 0.25f);
+    glm::vec2 texCoordF(1.0f, 0.0f);
+    glm::vec2 texCoordG(1.0f, -0.25f);
+    glm::vec2 texCoordH(0.5f, -0.75f);
+
     std::vector<VertexFormat> vertices =
     {
-        VertexFormat(corner + glm::vec3(0, -length / 4, 0), color),
-        VertexFormat(corner + glm::vec3(0, 0, 0), color),
-        VertexFormat(corner + glm::vec3(length / 4, length / 4, 0), color),
-        VertexFormat(corner + glm::vec3(length / 2, 0, 0), color),
-        VertexFormat(corner + glm::vec3(3 * length / 4, length / 4, 0), color),
-        VertexFormat(corner + glm::vec3(length, 0, 0), color),
-        VertexFormat(corner + glm::vec3(length, -length / 4, 0), color),
-        VertexFormat(corner + glm::vec3(length / 2, -3 * length / 4, 0), color),
+        VertexFormat(corner + glm::vec3(0, -length / 4, 0), color, glm::vec3(0, 1, 0), texCoordA),
+        VertexFormat(corner + glm::vec3(0, 0, 0), color, glm::vec3(0, 1, 0), texCoordB),
+        VertexFormat(corner + glm::vec3(length / 4, length / 4, 0), color, glm::vec3(0, 1, 0), texCoordC),
+        VertexFormat(corner + glm::vec3(length / 2, 0, 0), color, glm::vec3(0, 1, 0), texCoordD),
+        VertexFormat(corner + glm::vec3(3 * length / 4, length / 4, 0), color, glm::vec3(0, 1, 0), texCoordE),
+        VertexFormat(corner + glm::vec3(length, 0, 0), color, glm::vec3(0, 1, 0), texCoordF),
+        VertexFormat(corner + glm::vec3(length, -length / 4, 0), color, glm::vec3(0, 1, 0), texCoordG),
+        VertexFormat(corner + glm::vec3(length / 2, -3 * length / 4, 0), color, glm::vec3(0, 1, 0), texCoordH),
     };
 
 
@@ -158,20 +174,36 @@ Mesh* shapes::CreateStar(
     bool fill)
 {
     glm::vec3 c = center;
+
+    // Define texture coordinates for each vertex
+    // These are placeholders and might need to be tweaked
+    glm::vec2 texCoordA(0.0f, 0.0f / 6);
+    glm::vec2 texCoordB(-0.5f, 1.0f / 6);
+    glm::vec2 texCoordC(-1.4f / 12, 1.0f / 6);
+    glm::vec2 texCoordD(0.0f, 1.0f / 2);
+    glm::vec2 texCoordE(1.4f / 12, 1.0f / 6);
+    glm::vec2 texCoordF(0.5f, 1.0f / 6);
+
+    glm::vec2 texCoordG(2.35f / 12, -1.0f / 12);
+    glm::vec2 texCoordH(4.0f / 12, -1.0f / 2);
+    glm::vec2 texCoordJ(0.0f, -2.8f / 12);
+    glm::vec2 texCoordK(-4.0f / 12, -1.0f / 2);
+    glm::vec2 texCoordL(-2.35f / 12, -1.0f / 12);
+
     std::vector<VertexFormat> vertices =
     {
-        VertexFormat(c, color),
-        VertexFormat(c + glm::vec3(-length / 2, length / 6, 0), color),
-        VertexFormat(c + glm::vec3((double)-1.4 / 12 * length, length / 6, 0), color),
-        VertexFormat(c + glm::vec3(0, length / 2, 0), color),
-        VertexFormat(c + glm::vec3((double)1.4 / 12 * length, length / 6, 0), color),
-        VertexFormat(c + glm::vec3(length / 2, length / 6, 0), color),
+        VertexFormat(c, color, glm::vec3(0, 1, 0), texCoordA),
+        VertexFormat(c + glm::vec3(-length / 2, length / 6, 0), color, glm::vec3(0, 1, 0), texCoordB),
+        VertexFormat(c + glm::vec3((double)-1.4 / 12 * length, length / 6, 0), color, glm::vec3(0, 1, 0), texCoordC),
+        VertexFormat(c + glm::vec3(0, length / 2, 0), color, glm::vec3(0, 1, 0), texCoordD),
+        VertexFormat(c + glm::vec3((double)1.4 / 12 * length, length / 6, 0), color, glm::vec3(0, 1, 0), texCoordE),
+        VertexFormat(c + glm::vec3(length / 2, length / 6, 0), color, glm::vec3(0, 1, 0), texCoordF),
 
-        VertexFormat(c + glm::vec3((double)2.35 / 12 * length, -length / 12, 0), color),
-        VertexFormat(c + glm::vec3((double)4 / 12 * length, -length / 2, 0), color),
-        VertexFormat(c + glm::vec3(0, -2.8 / 12 * length, 0), color),
-        VertexFormat(c + glm::vec3(-(double)4 / 12 * length, -length / 2, 0), color),
-        VertexFormat(c + glm::vec3(-(double)2.35 / 12 * length, -length / 12, 0), color),
+        VertexFormat(c + glm::vec3((double)2.35 / 12 * length, -length / 12, 0), color, glm::vec3(0, 1, 0), texCoordG),
+        VertexFormat(c + glm::vec3((double)4 / 12 * length, -length / 2, 0), color, glm::vec3(0, 1, 0), texCoordH),
+        VertexFormat(c + glm::vec3(0, -2.8 / 12 * length, 0), color, glm::vec3(0, 1, 0), texCoordJ),
+        VertexFormat(c + glm::vec3(-(double)4 / 12 * length, -length / 2, 0), color, glm::vec3(0, 1, 0), texCoordK),
+        VertexFormat(c + glm::vec3(-(double)2.35 / 12 * length, -length / 12, 0), color, glm::vec3(0, 1, 0), texCoordL),
     };
 
 

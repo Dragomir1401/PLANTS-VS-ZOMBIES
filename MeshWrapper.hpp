@@ -1,6 +1,6 @@
 #pragma once
 #include "components/simple_scene.h"
-#define DISAPEAR_STEPS 40
+#define DISAPEAR_STEPS 100
 
 
 class MeshWrapper
