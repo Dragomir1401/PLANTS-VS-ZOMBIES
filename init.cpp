@@ -1266,12 +1266,16 @@ void InitClass::DetectShooterEnemyCollision()
 	{
 		for (int i = 0; i < lineEnemies[line].size(); i++)
 		{
-			if (lineEnemies[line][i]->getEnemyStarted() && !lineEnemies[line][i]->getEnemyIsDead() && !lineEnemies[line][i]->getIsHealthPoint())
+			if (lineEnemies[line][i]->getEnemyStarted() && 
+				!lineEnemies[line][i]->getEnemyIsDead() &&
+				!lineEnemies[line][i]->getIsHealthPoint() &&
+				lineEnemies[line][i] != nullptr)
 			{
 				for (int j = 0; j < PLACINGS_SIZE; j++)
 				{
 					if (staticScene->getPlacing(line, j)->getTaken() &&
-						staticScene->getPlacing(line, j)->getVisibility())
+						staticScene->getPlacing(line, j)->getVisibility() &&
+						staticScene->getPlacing(line, j)->getDisapearing() == false)
 					{
 						if (shootersMatrix[line][j] != nullptr &&
 							createdShooter[line][j] &&
