@@ -1,7 +1,16 @@
 #pragma once
 #include "components/simple_scene.h"
-#define DISAPEAR_STEPS 100
+#define DISAPEAR_STEPS 40
 
+// Make enum for type of shooter
+enum ShooterType
+{
+	CLASSIC = 0,
+	SPAWNER = 1,
+	CANNON = 2,
+	EATER = 3,
+	SNOW_CANNON = 4
+};
 
 class MeshWrapper
 {
@@ -37,6 +46,8 @@ public:
 	void setFrozenPosition(float positionX, float positionY);
 	void setFrozenPosition(glm::vec2 position);
 	glm::vec2 getFrozenPosition() const;
+	void setType(int type);
+	int getType() const;
 
 protected:
 	Mesh* mesh_;
@@ -51,4 +62,5 @@ protected:
 	float timeAccumulator_ = 0;
 	bool disapearing_ = false;
 	bool taken_ = false;
+	int type_ = 0;
 };

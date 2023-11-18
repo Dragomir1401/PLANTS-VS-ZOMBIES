@@ -17,6 +17,7 @@ namespace m1
 		int GetShooterCostByColor(glm::vec3 color);
 		int SelectRandomLine();
 		int GetTypeByColor(glm::vec3 color);
+		std::string GetStringTypeByColor(glm::vec3 color);
 		float GetBulletIntervalByColor(glm::vec3 color);
 		float GetSpawnIntervalByColor(glm::vec3 color);
 		glm::vec3 getRandomColor();

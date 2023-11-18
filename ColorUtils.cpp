@@ -180,6 +180,29 @@ int m1::ColorUtils::GetTypeByColor(glm::vec3 color)
         return 0;
     }
 }
+std::string m1::ColorUtils::GetStringTypeByColor(glm::vec3 color)
+{
+    if (color == glm::vec3(1.0f, 0.5f, 0.0f))
+    {
+		return "orange";
+	}
+    else if (color == glm::vec3(0.0f, 0.0f, 1.0f))
+    {
+		return "blue";
+	}
+    else if (color == glm::vec3(1.0f, 1.0f, 0.0f))
+    {
+		return "yellow";
+	}
+    else if (color == glm::vec3(0.6f, 0.0f, 1.0f))
+    {
+		return "purple";
+	}
+    else
+    {
+		return "NO_COLOR_ASSIGNED";
+	}
+}
 
 float m1::ColorUtils::GetBulletIntervalByColor(glm::vec3 color)
 {

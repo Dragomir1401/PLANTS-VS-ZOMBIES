@@ -26,447 +26,535 @@ InitClass::~InitClass()
 
 void InitClass::Init()
 {
-    glClearColor(0, 0, 0, 1);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glClearColor(0, 0, 0, 1);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    glm::ivec2 resolution = window->GetResolution();
-    auto camera = GetSceneCamera();
-    camera->SetOrthographic(0, (float)resolution.x, 0, (float)resolution.y, 0.01f, 400);
-    camera->SetPosition(glm::vec3(0, 0, 50));
-    camera->SetRotation(glm::vec3(0, 0, 0));
-    camera->Update();
-    GetCameraInput()->SetActive(false);
+	glm::ivec2 resolution = window->GetResolution();
+	auto camera = GetSceneCamera();
+	camera->SetOrthographic(0, (float)resolution.x, 0, (float)resolution.y, 0.01f, 400);
+	camera->SetPosition(glm::vec3(0, 0, 50));
+	camera->SetRotation(glm::vec3(0, 0, 0));
+	camera->Update();
+	GetCameraInput()->SetActive(false);
 
-    // Initialize time accumulators matrix
-    for (int i = 0; i < PLACINGS_SIZE; i++)
+	// Initialize time accumulators matrix
+	for (int i = 0; i < PLACINGS_SIZE; i++)
 	{
 		for (int j = 0; j < PLACINGS_SIZE; j++)
-        {
-            timedShooting[i][j] = 0.0f;
-	    }
-    }
+		{
+			timedShooting[i][j] = 0.0f;
+		}
+	}
 
-    // Initialise line enemy timer
-    for (int i = 0; i < PLACINGS_SIZE; i++)
-    {
-        for (int j = 0; j < TYPES_OF_SHOOTERS; j++)
-        {
-            lineEnemyTimer[i][j] = 0.0f;
-        }
-    }
+	// Initialise line enemy timer
+	for (int i = 0; i < PLACINGS_SIZE; i++)
+	{
+		for (int j = 0; j < TYPES_OF_SHOOTERS; j++)
+		{
+			lineEnemyTimer[i][j] = 0.0f;
+		}
+	}
 
-    slowDownTimer = 0.0f;
-    healthPointSpawnRate = 0.0f;
-    coinSpawnTimer = 0.0f;
-    bigCoinTimer = 0.0f;
-    difficultyTimer = 0.0f;
-    enemyPositionTimer = 0.0f;
+	slowDownTimer = 0.0f;
+	healthPointSpawnRate = 0.0f;
+	coinSpawnTimer = 0.0f;
+	bigCoinTimer = 0.0f;
+	difficultyTimer = 0.0f;
+	enemyPositionTimer = 0.0f;
 
-    staticScene = new StaticScene();
-    colorUtils = new ColorUtils();
+	staticScene = new StaticScene();
+	colorUtils = new ColorUtils();
 
-    // Create shader
-    const string sourceTextureDir = PATH_JOIN(window->props.selfDir, SOURCE_PATH::M1, "tema1", "textures");
-    Shader* shader = new Shader("textureShader");
-    shader->AddShader(PATH_JOIN(window->props.selfDir, SOURCE_PATH::M1, "tema1", "shaders", "VertexShader.glsl"), GL_VERTEX_SHADER);
-    shader->AddShader(PATH_JOIN(window->props.selfDir, SOURCE_PATH::M1, "tema1", "shaders", "FragmentShader.glsl"), GL_FRAGMENT_SHADER);
-    shader->CreateAndLink();
-    shaders[shader->GetName()] = shader;
+	// Create shader
+	Shader* shader = new Shader("textureShader");
+	shader->AddShader(PATH_JOIN(window->props.selfDir, SOURCE_PATH::M1, "tema1", "shaders", "VertexShader.glsl"), GL_VERTEX_SHADER);
+	shader->AddShader(PATH_JOIN(window->props.selfDir, SOURCE_PATH::M1, "tema1", "shaders", "FragmentShader.glsl"), GL_FRAGMENT_SHADER);
+	shader->CreateAndLink();
+	shaders[shader->GetName()] = shader;
 
-    // Create a texture object for grass1
-    Texture2D* texture1 = new Texture2D();
-    texture1->Load2D(PATH_JOIN(sourceTextureDir, "dirt.png").c_str(), GL_REPEAT);
-    mapTextures["grass1"] = texture1;
-
-    // Create a texture object for grass2
-    Texture2D* texture2 = new Texture2D();
-    texture2->Load2D(PATH_JOIN(sourceTextureDir, "dirt.png").c_str(), GL_REPEAT);
-    mapTextures["grass2"] = texture2;
-
-    // Create a texture object for health point1
-    Texture2D* texture3 = new Texture2D();
-    texture3->Load2D(PATH_JOIN(sourceTextureDir, "heartM.png").c_str(), GL_REPEAT);
-    mapTextures["health_point1"] = texture3;
-
-    // Create a texture object for health point2
-    Texture2D* texture4 = new Texture2D();
-    texture4->Load2D(PATH_JOIN(sourceTextureDir, "heartM.png").c_str(), GL_REPEAT);
-    mapTextures["health_point2"] = texture4;
-
-    // Create a texture object for bullet 1
-    Texture2D* texture5 = new Texture2D();
-    texture5->Load2D(PATH_JOIN(sourceTextureDir, "particle2.png").c_str(), GL_REPEAT);
-    mapTextures["bullet1"] = texture5;
-
-    // Create a texture object for bullet 2
-    Texture2D* texture6 = new Texture2D();
-    texture6->Load2D(PATH_JOIN(sourceTextureDir, "particle2.png").c_str(), GL_REPEAT);
-    mapTextures["bullet2"] = texture6;
+	LoadTextures();
 }
 
 
 void InitClass::FrameStart()
 {
-    // Clears the color buffer (using the previously set color) and depth buffer
-    glClearColor(0, 0, 0, 1);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	// Clears the color buffer (using the previously set color) and depth buffer
+	glClearColor(0, 0, 0, 1);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    glm::ivec2 resolution = window->GetResolution();
-    // Sets the screen area where to draw
-    glViewport(0, 0, resolution.x, resolution.y);
+	glm::ivec2 resolution = window->GetResolution();
+	// Sets the screen area where to draw
+	glViewport(0, 0, resolution.x, resolution.y);
 }
  
 void InitClass::RenderTexturedMesh(Mesh* mesh, Shader* shader, const glm::mat4& modelMatrix, Texture2D* texture1, Texture2D* texture2)
 {
-    if (!mesh || !shader || !shader->GetProgramID())
-        return;
+	if (!mesh || !shader || !shader->GetProgramID())
+		return;
 
-    // Render an object using the specified shader and the specified position
-    glUseProgram(shader->program);
+	// Render an object using the specified shader and the specified position
+	glUseProgram(shader->program);
 
-    // Bind model matrix
-    GLint loc_model_matrix = glGetUniformLocation(shader->program, "Model");
-    glUniformMatrix4fv(loc_model_matrix, 1, GL_FALSE, glm::value_ptr(modelMatrix));
+	// Bind model matrix
+	GLint loc_model_matrix = glGetUniformLocation(shader->program, "Model");
+	glUniformMatrix4fv(loc_model_matrix, 1, GL_FALSE, glm::value_ptr(modelMatrix));
 
-    // Bind view matrix
-    glm::mat4 viewMatrix = GetSceneCamera()->GetViewMatrix();
-    int loc_view_matrix = glGetUniformLocation(shader->program, "View");
-    glUniformMatrix4fv(loc_view_matrix, 1, GL_FALSE, glm::value_ptr(viewMatrix));
+	// Bind view matrix
+	glm::mat4 viewMatrix = GetSceneCamera()->GetViewMatrix();
+	int loc_view_matrix = glGetUniformLocation(shader->program, "View");
+	glUniformMatrix4fv(loc_view_matrix, 1, GL_FALSE, glm::value_ptr(viewMatrix));
 
-    // Bind projection matrix
-    glm::mat4 projectionMatrix = GetSceneCamera()->GetProjectionMatrix();
-    int loc_projection_matrix = glGetUniformLocation(shader->program, "Projection");
-    glUniformMatrix4fv(loc_projection_matrix, 1, GL_FALSE, glm::value_ptr(projectionMatrix));
+	// Bind projection matrix
+	glm::mat4 projectionMatrix = GetSceneCamera()->GetProjectionMatrix();
+	int loc_projection_matrix = glGetUniformLocation(shader->program, "Projection");
+	glUniformMatrix4fv(loc_projection_matrix, 1, GL_FALSE, glm::value_ptr(projectionMatrix));
 
-    // TODO(student): Set any other shader uniforms that you need
-    int loc_texture_1 = glGetUniformLocation(shader->program, "texture_1");
-    int loc_texture_2 = glGetUniformLocation(shader->program, "texture_2");
+	// TODO(student): Set any other shader uniforms that you need
+	int loc_texture_1 = glGetUniformLocation(shader->program, "texture_1");
+	int loc_texture_2 = glGetUniformLocation(shader->program, "texture_2");
 
-    if (texture1)
-    {
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, texture1->GetTextureID());
-        glUniform1i(loc_texture_1, 0);
-    }
+	if (texture1)
+	{
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, texture1->GetTextureID());
+		glUniform1i(loc_texture_1, 0);
+	}
 
-    if (texture2)
-    {
-        glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, texture2->GetTextureID());
-        glUniform1i(loc_texture_2, 1);
-    }
+	if (texture2)
+	{
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, texture2->GetTextureID());
+		glUniform1i(loc_texture_2, 1);
+	}
 
-    // Draw the object
-    glBindVertexArray(mesh->GetBuffers()->m_VAO);
-    glDrawElements(mesh->GetDrawMode(), static_cast<int>(mesh->indices.size()), GL_UNSIGNED_INT, 0);
+	// Draw the object
+	glBindVertexArray(mesh->GetBuffers()->m_VAO);
+	glDrawElements(mesh->GetDrawMode(), static_cast<int>(mesh->indices.size()), GL_UNSIGNED_INT, 0);
+}
+
+void m1::InitClass::LoadTextures()
+{
+	const string sourceTextureDir = PATH_JOIN(window->props.selfDir, SOURCE_PATH::M1, "tema1", "textures");
+
+	// Create a texture object for grass1
+	Texture2D* texture = new Texture2D();
+	texture->Load2D(PATH_JOIN(sourceTextureDir, "rasad.png").c_str(), GL_REPEAT);
+	mapTextures["grass1"] = texture;
+
+	// Create a texture object for grass2
+	texture = new Texture2D();
+	texture->Load2D(PATH_JOIN(sourceTextureDir, "rasad.png").c_str(), GL_REPEAT);
+	mapTextures["grass2"] = texture;
+
+	// Create a texture object for health point1
+	texture = new Texture2D();
+	texture->Load2D(PATH_JOIN(sourceTextureDir, "particle_yellow.png").c_str(), GL_REPEAT);
+	mapTextures["health_point1"] = texture;
+
+	// Create a texture object for health point2
+	texture = new Texture2D();
+	texture->Load2D(PATH_JOIN(sourceTextureDir, "lava.png").c_str(), GL_REPEAT);
+	mapTextures["health_point2"] = texture;
+
+	// Create a texture object for bullet 1
+	texture = new Texture2D();
+	texture->Load2D(PATH_JOIN(sourceTextureDir, "particle2.png").c_str(), GL_REPEAT);
+	mapTextures["bullet1"] = texture;
+
+	// Create a texture object for bullet 2
+	texture = new Texture2D();
+	texture->Load2D(PATH_JOIN(sourceTextureDir, "particle2.png").c_str(), GL_REPEAT);
+	mapTextures["bullet2"] = texture;
+
+	// Create a texture for color yellow
+	texture = new Texture2D();
+	texture->Load2D(PATH_JOIN(sourceTextureDir, "yellow.png").c_str(), GL_CLAMP_TO_EDGE);
+	mapTextures["yellow"] = texture;
+
+	// Create a texture for color blue
+	texture = new Texture2D();
+	texture->Load2D(PATH_JOIN(sourceTextureDir, "blue.png").c_str(), GL_CLAMP_TO_EDGE);
+	mapTextures["blue"] = texture;
+
+	// Create a texture for color purple
+	texture = new Texture2D();
+	texture->Load2D(PATH_JOIN(sourceTextureDir, "purple.png").c_str(), GL_CLAMP_TO_EDGE);
+	mapTextures["purple"] = texture;
+
+	// Create a texture for color orange
+	texture = new Texture2D();
+	texture->Load2D(PATH_JOIN(sourceTextureDir, "orange.png").c_str(), GL_CLAMP_TO_EDGE);
+	mapTextures["orange"] = texture;
+
+	// Create a texture for gold
+	texture = new Texture2D();
+	texture->Load2D(PATH_JOIN(sourceTextureDir, "gold.png").c_str(), GL_REPEAT);
+	mapTextures["gold"] = texture;
+
+	// Create a texture for white
+	texture = new Texture2D();
+	texture->Load2D(PATH_JOIN(sourceTextureDir, "white.png").c_str(), GL_REPEAT);
+	mapTextures["white"] = texture;
+
+	// Crate a texture for hitbar
+	texture = new Texture2D();
+	texture->Load2D(PATH_JOIN(sourceTextureDir, "wood.png").c_str(), GL_REPEAT);
+	mapTextures["hitbar"] = texture;
+
+	// Crate a texture for spawner
+	texture = new Texture2D();
+	texture->Load2D(PATH_JOIN(sourceTextureDir, "spawner.png").c_str(), GL_REPEAT);
+	mapTextures["spawner"] = texture;
+
+	// Crate a texture for spawner
+	texture = new Texture2D();
+	texture->Load2D(PATH_JOIN(sourceTextureDir, "spawnerM.png").c_str(), GL_REPEAT);
+	mapTextures["spawnerM"] = texture;
+
+	// Crate a texture for spawner
+	texture = new Texture2D();
+	texture->Load2D(PATH_JOIN(sourceTextureDir, "spawnerS.png").c_str(), GL_REPEAT);
+	mapTextures["spawnerS"] = texture;
+
+	// Crate a texture for cannon
+	texture = new Texture2D();
+	texture->Load2D(PATH_JOIN(sourceTextureDir, "cannon.png").c_str(), GL_REPEAT);
+	mapTextures["cannon"] = texture;
+
+	// Crate a texture for cannon_inside
+	texture = new Texture2D();
+	texture->Load2D(PATH_JOIN(sourceTextureDir, "cannon_inside.png").c_str(), GL_REPEAT);
+	mapTextures["cannon_inside"] = texture;
+
+	// Crate a texture for ice
+	texture = new Texture2D();
+	texture->Load2D(PATH_JOIN(sourceTextureDir, "ice.png").c_str(), GL_REPEAT);
+	mapTextures["ice"] = texture;
+
+	// Crate a texture for beacon
+	texture = new Texture2D();
+	texture->Load2D(PATH_JOIN(sourceTextureDir, "beacon.png").c_str(), GL_REPEAT);
+	mapTextures["beacon"] = texture;
 }
 
 void InitClass::RendPlacings()
 {
-    modelMatrix = glm::mat3(1);
-    modelMatrix *= transformUtils::Translate(-INITIAL_X / 8, INITIAL_Y);
+	modelMatrix = glm::mat3(1);
+	modelMatrix *= transformUtils::Translate(-INITIAL_X / 8, INITIAL_Y);
 
-    for (int i = 0; i < PLACINGS_SIZE; i++)
-    {
-        if (i)
-        {
-            modelMatrix *= transformUtils::Translate(0, MATRIX_DISPLACEMENT);
-            modelMatrix *= transformUtils::Translate(-MATRIX_DISPLACEMENT * PLACINGS_SIZE, 0);
-        }
-        for (int j = 0; j < PLACINGS_SIZE; j++) {
-            modelMatrix *= transformUtils::Translate(MATRIX_DISPLACEMENT, 0);
+	for (int i = 0; i < PLACINGS_SIZE; i++)
+	{
+		if (i)
+		{
+			modelMatrix *= transformUtils::Translate(0, MATRIX_DISPLACEMENT);
+			modelMatrix *= transformUtils::Translate(-MATRIX_DISPLACEMENT * PLACINGS_SIZE, 0);
+		}
+		for (int j = 0; j < PLACINGS_SIZE; j++) {
+			modelMatrix *= transformUtils::Translate(MATRIX_DISPLACEMENT, 0);
 
-            if (staticScene->getPlacing(i, j)->getVisibility())
-            {
-                // Render the mesh with the shader
-                glm::mat4 model = glm::mat4(
-                    modelMatrix[0][0], modelMatrix[0][1], modelMatrix[0][2], 0.f,
-                    modelMatrix[1][0], modelMatrix[1][1], modelMatrix[1][2], 0.f,
-                    0.f, 0.f, modelMatrix[2][2], 0.f,
-                    modelMatrix[2][0], modelMatrix[2][1], 0.f, 1.f);
+			if (staticScene->getPlacing(i, j)->getVisibility())
+			{
+				// Render the mesh with the shader
+				glm::mat4 model = ConvertMat3to4(modelMatrix);
 
-                RenderTexturedMesh(staticScene->getPlacing(i, j)->getMesh(),
-                                   shaders["textureShader"], model,
-                                   mapTextures["grass1"],
-                                   mapTextures["grass2"]);
+				RenderTexturedMesh(staticScene->getPlacing(i, j)->getMesh(),
+								   shaders["textureShader"], model,
+								   mapTextures["grass1"],
+								   mapTextures["grass2"]);
 
-                // Set position of the placing
-                glm::vec2 position;
-                position.x = (float)(MATRIX_CORNER_X + j * MATRIX_DISPLACEMENT);
-                position.y = (float)(MATRIX_CORNER_Y + i * MATRIX_DISPLACEMENT);
-                staticScene->getPlacing(i, j)->setPosition(position);
+				// Set position of the placing
+				glm::vec2 position;
+				position.x = (float)(MATRIX_CORNER_X + j * MATRIX_DISPLACEMENT);
+				position.y = (float)(MATRIX_CORNER_Y + i * MATRIX_DISPLACEMENT);
+				staticScene->getPlacing(i, j)->setPosition(position);
 			}
-        }
-    }
+		}
+	}
 }
 
+glm::mat4 InitClass::ConvertMat3to4(glm::mat3 modelMatrix)
+{
+	glm::mat4 model = glm::mat4(
+		modelMatrix[0][0], modelMatrix[0][1], modelMatrix[0][2], 0.f,
+		modelMatrix[1][0], modelMatrix[1][1], modelMatrix[1][2], 0.f,
+		0.f, 0.f, modelMatrix[2][2], 0.f,
+		modelMatrix[2][0], modelMatrix[2][1], 0.f, 1.f);
 
+	return model;
+}
 void InitClass::RendHitBar()
 {
-    modelMatrix = glm::mat3(1);
-    modelMatrix *= transformUtils::Translate(INITIAL_X, INITIAL_Y);
+	modelMatrix = glm::mat3(1);
+	modelMatrix *= transformUtils::Translate(INITIAL_X, INITIAL_Y);
 
-    if (staticScene->getHitBar()->getVisibility())
+	if (staticScene->getHitBar()->getVisibility())
 	{ 
-        RenderMesh2D(staticScene->getHitBar()->getMesh(), shaders["VertexColor"], modelMatrix);
+		glm::mat4 model = ConvertMat3to4(modelMatrix);
+		RenderTexturedMesh(staticScene->getHitBar()->getMesh(),
+			shaders["textureShader"], model,
+			mapTextures["hitbar"],
+			mapTextures["hitbar"]);
 
-        // Set position of the hit bar
-        glm::vec2 position;
-        position.x = (float)(INITIAL_X);
-        position.y = (float)(INITIAL_Y);
-        staticScene->getHitBar()->setPosition(position);
-    }
+		// Set position of the hit bar
+		glm::vec2 position;
+		position.x = (float)(INITIAL_X);
+		position.y = (float)(INITIAL_Y);
+		staticScene->getHitBar()->setPosition(position);
+	}
 }
 
 
 void InitClass::RendShooters()
 {
-    modelMatrix = glm::mat3(1);
-    modelMatrix *= transformUtils::Translate(PLACEHOLDERS_X + DEFAULT_SQUARE_SIDE / 8, PLACEHOLDERS_Y + DEFAULT_SQUARE_SIDE / 2);
-    bool loweredLine = false;
-    int lastRow = 0;
+	modelMatrix = glm::mat3(1);
+	modelMatrix *= transformUtils::Translate(PLACEHOLDERS_X + DEFAULT_SQUARE_SIDE / 8, PLACEHOLDERS_Y + DEFAULT_SQUARE_SIDE / 2);
+	bool loweredLine = false;
+	int lastRow = 0;
 
-    for (int i = 0; i < PLACEHOLDERS_COUNT_TOTAL; i++)
-    {
-        int row = i / PLACEHOLDERS_COUNT;
-        if (row != lastRow)
-        {
-            loweredLine = false;
-            lastRow = row;
-        }
+	for (int i = 0; i < PLACEHOLDERS_COUNT_TOTAL; i++)
+	{
+		int row = i / PLACEHOLDERS_COUNT;
+		if (row != lastRow)
+		{
+			loweredLine = false;
+			lastRow = row;
+		}
 
-        if (i)
-        {
-            modelMatrix *= transformUtils::Translate(SHOOTER_DISPLACEMENT, 0);
-        }
+		if (i)
+		{
+			modelMatrix *= transformUtils::Translate(SHOOTER_DISPLACEMENT, 0);
+		}
 
-        if (i >= PLACEHOLDERS_COUNT)
-        {
-            if (i == 4)
-            {
-                modelMatrix *= transformUtils::Translate(DEFAULT_SQUARE_SIDE * SPAWNER_SCALE, 0);
-            }
-            else if (i == 5)
-            {
+		if (i >= PLACEHOLDERS_COUNT)
+		{
+			if (i == 4)
+			{
+				modelMatrix *= transformUtils::Translate(DEFAULT_SQUARE_SIDE * SPAWNER_SCALE, 0);
+			}
+			else if (i == 5)
+			{
 				modelMatrix *= transformUtils::Translate(DEFAULT_SQUARE_SIDE * CANNON_SCALE, 0);
-            }
-            else if (i == 7)
-            {
-                modelMatrix *= transformUtils::Translate(-DEFAULT_SQUARE_SIDE * SNOW_CANNON_SCALE, 0);
-            }
-        }
+			}
+			else if (i == 7)
+			{
+				modelMatrix *= transformUtils::Translate(-DEFAULT_SQUARE_SIDE * SNOW_CANNON_SCALE, 0);
+			}
+		}
 
-        if (!loweredLine && row)
-        {
-            modelMatrix *= transformUtils::Translate(0, -MATRIX_DISPLACEMENT);
-            modelMatrix *= transformUtils::Translate(-SHOOTER_DISPLACEMENT * PLACEHOLDERS_COUNT, 0);
-            loweredLine = true;
-        }
+		if (!loweredLine && row)
+		{
+			modelMatrix *= transformUtils::Translate(0, -MATRIX_DISPLACEMENT);
+			modelMatrix *= transformUtils::Translate(-SHOOTER_DISPLACEMENT * PLACEHOLDERS_COUNT, 0);
+			loweredLine = true;
+		}
 
-        if (staticScene->getShooters()[i]->getVisibility())
-        {
-            RenderMesh2D(staticScene->getShooters()[i]->getMesh(), shaders["VertexColor"], modelMatrix);
+		if (staticScene->getShooters()[i]->getVisibility())
+		{
+			if (staticScene->getShooters()[i]->getType() == CLASSIC)
+			{
+				glm::mat4 model = ConvertMat3to4(modelMatrix);
 
-            // Set position of the shooter
-            glm::vec2 position;
-            position.x = (float)(PLACEHOLDERS_X + DEFAULT_SQUARE_SIDE / 8 + SHOOTER_DISPLACEMENT * i);
-            position.y = (float)(PLACEHOLDERS_Y + DEFAULT_SQUARE_SIDE / 2);
+				// Make string from type
+				std::string typeString = colorUtils->GetStringTypeByColor(staticScene->getShooters()[i]->getColor());
 
-            staticScene->getShooters()[i]->setMovingPosition(position);
-        }
-    }
+				RenderTexturedMesh(staticScene->getShooters()[i]->getMesh(),
+					shaders["textureShader"], model,
+					mapTextures[typeString],
+					mapTextures[typeString]);
+			}
+			else if (staticScene->getShooters()[i]->getType() == SPAWNER)
+			{
+				glm::mat4 model = ConvertMat3to4(modelMatrix);
+				
+				RenderTexturedMesh(staticScene->getShooters()[i]->getMesh(),
+					shaders["textureShader"], model,
+					mapTextures["spawnerS"],
+					mapTextures["spawnerM"]);
+			}
+			else if (staticScene->getShooters()[i]->getType() == CANNON)
+			{
+				glm::mat4 model = ConvertMat3to4(modelMatrix);
+
+				RenderTexturedMesh(staticScene->getShooters()[i]->getMesh(),
+					shaders["textureShader"], model,
+					mapTextures["cannon"],
+					mapTextures["cannon_inside"]);
+			}
+			else if (staticScene->getShooters()[i]->getType() == SNOW_CANNON)
+			{
+				glm::mat4 model = ConvertMat3to4(modelMatrix);
+
+				RenderTexturedMesh(staticScene->getShooters()[i]->getMesh(),
+					shaders["textureShader"], model,
+					mapTextures["ice"],
+					mapTextures["beacon"]);
+			}
+			else
+			{
+				// Render classic mesh with Render2D
+				RenderMesh2D(staticScene->getShooters()[i]->getMesh(), shaders["VertexColor"], modelMatrix);
+			}
+
+			// Set position of the shooter
+			glm::vec2 position;
+			position.x = (float)(PLACEHOLDERS_X + DEFAULT_SQUARE_SIDE / 8 + SHOOTER_DISPLACEMENT * i);
+			position.y = (float)(PLACEHOLDERS_Y + DEFAULT_SQUARE_SIDE / 2);
+
+			staticScene->getShooters()[i]->setMovingPosition(position);
+		}
+	}
 }
 
 
 void InitClass::RendHealthPoints()
 {
-    modelMatrix = glm::mat3(1);
-    modelMatrix *= transformUtils::Translate(HEALTH_POINTS_X, HEALTH_POINTS_Y);
-    for (int i = 0; i < nrOfHealthPoints; i++)
-    {
-        if (i)
-        {
-            modelMatrix *= transformUtils::Translate(MATRIX_DISPLACEMENT, 0);
-        }
-
-        if (staticScene->getHealthPoints()[i]->getVisibility())
-        {
-            // Render the mesh with the shader
-            glm::mat4 model = glm::mat4(
-                modelMatrix[0][0], modelMatrix[0][1], modelMatrix[0][2], 0.f,
-                modelMatrix[1][0], modelMatrix[1][1], modelMatrix[1][2], 0.f,
-                0.f, 0.f, modelMatrix[2][2], 0.f,
-                modelMatrix[2][0], modelMatrix[2][1], 0.f, 1.f);
-            RenderTexturedMesh(staticScene->getHealthPoints()[i]->getMesh(),
-                							   shaders["textureShader"], model,
-                							   mapTextures["health_point1"],
-                							   mapTextures["health_point2"]);
-
-            // Set position of the health point
-            glm::vec2 position;
-            position.x = (float)(HEALTH_POINTS_X + i * MATRIX_DISPLACEMENT);
-            position.y = (float)(HEALTH_POINTS_Y);
-
-            staticScene->getHealthPoints()[i]->setPosition(position);
+	modelMatrix = glm::mat3(1);
+	modelMatrix *= transformUtils::Translate(HEALTH_POINTS_X, HEALTH_POINTS_Y);
+	for (int i = 0; i < nrOfHealthPoints; i++)
+	{
+		if (i)
+		{
+			modelMatrix *= transformUtils::Translate(MATRIX_DISPLACEMENT, 0);
 		}
-    }
+
+		if (staticScene->getHealthPoints()[i]->getVisibility())
+		{
+			// Render the mesh with the shader
+			glm::mat4 model = ConvertMat3to4(modelMatrix);
+			RenderTexturedMesh(staticScene->getHealthPoints()[i]->getMesh(),
+											   shaders["textureShader"], model,
+											   mapTextures["health_point1"],
+											   mapTextures["health_point2"]);
+
+			// Set position of the health point
+			glm::vec2 position;
+			position.x = (float)(HEALTH_POINTS_X + i * MATRIX_DISPLACEMENT);
+			position.y = (float)(HEALTH_POINTS_Y);
+
+			staticScene->getHealthPoints()[i]->setPosition(position);
+		}
+	}
 }
 
 
 void InitClass::RendPlaceHolders()
 {
-    modelMatrix = glm::mat3(1);
-    modelMatrix *= transformUtils::Translate(PLACEHOLDERS_X, PLACEHOLDERS_Y);
-    bool loweredLine = false;
-    int lastRow = 0;
+	modelMatrix = glm::mat3(1);
+	modelMatrix *= transformUtils::Translate(PLACEHOLDERS_X, PLACEHOLDERS_Y);
+	bool loweredLine = false;
+	int lastRow = 0;
 
-    for (int i = 0; i < PLACEHOLDERS_COUNT_TOTAL; i++)
-    {
-        int row = i / PLACEHOLDERS_COUNT;
-        if (row != lastRow)
-        {
-            loweredLine = false;
-            lastRow = row;
-        }
+	for (int i = 0; i < PLACEHOLDERS_COUNT_TOTAL; i++)
+	{
+		int row = i / PLACEHOLDERS_COUNT;
+		if (row != lastRow)
+		{
+			loweredLine = false;
+			lastRow = row;
+		}
 
-        if (i)
-        {
-            modelMatrix *= transformUtils::Translate(SHOOTER_DISPLACEMENT, 0);
-        }
+		if (i)
+		{
+			modelMatrix *= transformUtils::Translate(SHOOTER_DISPLACEMENT, 0);
+		}
 
-        if (!loweredLine && row)
-        {
-            modelMatrix *= transformUtils::Translate(0, -MATRIX_DISPLACEMENT);
-            modelMatrix *= transformUtils::Translate(-SHOOTER_DISPLACEMENT * PLACEHOLDERS_COUNT, 0);
-            loweredLine = true;
-        }
+		if (!loweredLine && row)
+		{
+			modelMatrix *= transformUtils::Translate(0, -MATRIX_DISPLACEMENT);
+			modelMatrix *= transformUtils::Translate(-SHOOTER_DISPLACEMENT * PLACEHOLDERS_COUNT, 0);
+			loweredLine = true;
+		}
 
-        if (staticScene->getPlaceHolders()[i]->getVisibility())
-        {
-            RenderMesh2D(staticScene->getPlaceHolders()[i]->getMesh(), shaders["VertexColor"], modelMatrix);
+		if (staticScene->getPlaceHolders()[i]->getVisibility())
+		{
+			RenderMesh2D(staticScene->getPlaceHolders()[i]->getMesh(), shaders["VertexColor"], modelMatrix);
 
-            // Set position of the place holder
-            glm::vec2 position;
-            position.x = (float)(PLACEHOLDERS_X + i * SHOOTER_DISPLACEMENT);
-            position.y = (float)(PLACEHOLDERS_Y);
-            staticScene->getPlaceHolders()[i]->setPosition(position);
-        }
-    }
+			// Set position of the place holder
+			glm::vec2 position;
+			position.x = (float)(PLACEHOLDERS_X + i * SHOOTER_DISPLACEMENT);
+			position.y = (float)(PLACEHOLDERS_Y);
+			staticScene->getPlaceHolders()[i]->setPosition(position);
+		}
+	}
 }
 
 
 void InitClass::Shoot()
 {
-    for (int i = 0; i < PLACINGS_SIZE; i++)
-    {
+	for (int i = 0; i < PLACINGS_SIZE; i++)
+	{
 		for (int j = 0; j < PLACINGS_SIZE; j++)
 		{
 			if (staticScene->getPlacing(i, j)->getTaken() && 
-                staticScene->getPlacing(i, j)->getVisibility() &&
-                shootersMatrix[i][j] != nullptr &&
-                createdShooter[i][j] &&
-                !shootersMatrix[i][j]->getIsSpawner() &&
-                !shootersMatrix[i][j]->getIsEater())
+				staticScene->getPlacing(i, j)->getVisibility() &&
+				shootersMatrix[i][j] != nullptr &&
+				createdShooter[i][j] &&
+				!shootersMatrix[i][j]->getIsSpawner() &&
+				!shootersMatrix[i][j]->getIsEater())
 			{   
-                glm::vec3 color = shootersMatrix[i][j]->getColor();
+				glm::vec3 color = shootersMatrix[i][j]->getColor();
 
-                // Create bullets with a timer of 2 seconds
-                if (timedShooting[i][j] > colorUtils->GetBulletIntervalByColor(color) &&
-                    (LineContainsEnemyOfColor(i, color) ||
-                        (shootersMatrix[i][j]->getIsCannon() || shootersMatrix[i][j]->getIsSnowCannon()) &&
-                         LineContainsEnemy(i)))
-                {
-                    MeshWrapperBullet* bullet = new MeshWrapperBullet(shapes::CreateStar(
-                                                                            "starShooting",
-                                                                            glm::vec3(0, 0, 2), 
-                                                                            DEFAULT_BULLET_SIZE,
-                                                                            color,
-                                                                            true));
-                    if (shootersMatrix[i][j]->getIsCannon())
-                    {
-                        bullet = new MeshWrapperBullet(shapes::CreateRocket(
-                                                                "starShooting",
-                                                                glm::vec3(0, 0, 2),
-                                                                DEFAULT_BULLET_SIZE,
-                                                                glm::vec3(1.0f, 1.0f, 1.0f), true));
-                        bullet->setIsRocket(true);
-                    }
-
-                    if (shootersMatrix[i][j]->getIsSnowCannon())
-                    {
-                        bullet = new MeshWrapperBullet(shapes::CreateSnowBullet(
+				// Create bullets with a timer of 2 seconds
+				if (timedShooting[i][j] > colorUtils->GetBulletIntervalByColor(color) &&
+					(LineContainsEnemyOfColor(i, color) ||
+						(shootersMatrix[i][j]->getIsCannon() || shootersMatrix[i][j]->getIsSnowCannon()) &&
+						 LineContainsEnemy(i)))
+				{
+					MeshWrapperBullet* bullet = new MeshWrapperBullet(shapes::CreateStar(
+																			"starShooting",
+																			glm::vec3(0, 0, 2), 
+																			DEFAULT_BULLET_SIZE,
+																			color,
+																			true));
+					if (shootersMatrix[i][j]->getIsCannon())
+					{
+						bullet = new MeshWrapperBullet(shapes::CreateRocket(
 																"starShooting",
 																glm::vec3(0, 0, 2),
 																DEFAULT_BULLET_SIZE,
-                                                                glm::vec3(0.7f, 0.7f, 0.9f),
+																glm::vec3(1.0f, 1.0f, 1.0f), true));
+						bullet->setIsRocket(true);
+					}
+
+					if (shootersMatrix[i][j]->getIsSnowCannon())
+					{
+						bullet = new MeshWrapperBullet(shapes::CreateSnowBullet(
+																"starShooting",
+																glm::vec3(0, 0, 2),
+																DEFAULT_BULLET_SIZE,
+																glm::vec3(0.7f, 0.7f, 0.9f),
 																glm::vec3(1.0f, 1.0f, 1.0f), true));
 						bullet->setIsSnowball(true);
 					}
 
 
-                    bullet->setPosition(shootersMatrix[i][j]->getPosition().x + DEFAULT_BULLET_SIZE, shootersMatrix[i][j]->getPosition().y);
-                    bullet->setMovingPosition(shootersMatrix[i][j]->getPosition().x + DEFAULT_BULLET_SIZE, shootersMatrix[i][j]->getPosition().y);
-                    bullet->setColor(shootersMatrix[i][j]->getColor());
-                    bullet->setBulletWasShot(true);
-                    bullet->setShooterPower(shootersMatrix[i][j]->getShooterPower());
+					bullet->setPosition(shootersMatrix[i][j]->getPosition().x + DEFAULT_BULLET_SIZE, shootersMatrix[i][j]->getPosition().y);
+					bullet->setMovingPosition(shootersMatrix[i][j]->getPosition().x + DEFAULT_BULLET_SIZE, shootersMatrix[i][j]->getPosition().y);
+					bullet->setColor(shootersMatrix[i][j]->getColor());
+					bullet->setBulletWasShot(true);
+					bullet->setShooterPower(shootersMatrix[i][j]->getShooterPower());
 
-                    shootersMatrix[i][j]->setBulletCount(shootersMatrix[i][j]->getBulletCount() + 1);
-                    lineBullets[i].push_back(bullet);
+					shootersMatrix[i][j]->setBulletCount(shootersMatrix[i][j]->getBulletCount() + 1);
+					lineBullets[i].push_back(bullet);
 
-                    timedShooting[i][j] = 0;
-                }
-            }
+					timedShooting[i][j] = 0;
+				}
+			}
 		}
-    }
+	}
 }
 
 
 void InitClass::DisapearAnimation(float deltaTimeSeconds, MeshWrapper* mesh, float radius)
 {
-    // Make a disapear animation for the shooter in the corresponding placing in the matrix of shooters
-    glm::vec2 scale = mesh->getScale();
-    scale.x -= 0.7f * deltaTimeSeconds;
-    scale.y -= 0.7f * deltaTimeSeconds;
-    mesh->setScale(scale);
+	// Make a disapear animation for the shooter in the corresponding placing in the matrix of shooters
+	glm::vec2 scale = mesh->getScale();
+	scale.x -= 0.7f * deltaTimeSeconds;
+	scale.y -= 0.7f * deltaTimeSeconds;
+	mesh->setScale(scale);
 
-    if (mesh != nullptr)
-    {
-		// Rend the shooter at the position of the corresponding placing in matrix
-        modelMatrix = glm::mat3(1);
-        modelMatrix *= transformUtils::Translate(mesh->getMovingPosition());
-        modelMatrix *= transformUtils::Translate(radius, 0);
-        modelMatrix *= transformUtils::Scale(mesh->getScale());
-        modelMatrix *= transformUtils::Translate(-radius, 0);
-        RenderMesh2D(mesh->getMesh(), shaders["VertexColor"], modelMatrix);
-	}
-}
-
-
-void InitClass::PulsingAnimation(float deltaTimeSeconds, MeshWrapper* mesh, float radius, float treshold, float speed)
-{
-    // Creates a pulsing animation like a heart beat
-    glm::vec2 scale = mesh->getScale();
-
-    if (mesh->getTimeAccumulator() < treshold / 2)
-    {
-		scale.x -= speed * deltaTimeSeconds;
-		scale.y -= speed * deltaTimeSeconds;
-	}
-    else
-    {
-		scale.x += speed * deltaTimeSeconds;
-		scale.y += speed * deltaTimeSeconds;
-	}
-
-    if (mesh->getTimeAccumulator() > treshold)
-    {
-        mesh->setTimeAccumulator(0.0f);
-    }
-
-    mesh->setScale(scale);
-
-    if (mesh != nullptr)
-    {
+	if (mesh != nullptr)
+	{
 		// Rend the shooter at the position of the corresponding placing in matrix
 		modelMatrix = glm::mat3(1);
 		modelMatrix *= transformUtils::Translate(mesh->getMovingPosition());
@@ -478,273 +566,350 @@ void InitClass::PulsingAnimation(float deltaTimeSeconds, MeshWrapper* mesh, floa
 }
 
 
+void InitClass::PulsingAnimation(float deltaTimeSeconds, MeshWrapper* mesh, float radius, float treshold, float speed)
+{
+	// Creates a pulsing animation like a heart beat
+	glm::vec2 scale = mesh->getScale();
+
+	if (mesh->getTimeAccumulator() < treshold / 2)
+	{
+		scale.x -= speed * deltaTimeSeconds;
+		scale.y -= speed * deltaTimeSeconds;
+	}
+	else
+	{
+		scale.x += speed * deltaTimeSeconds;
+		scale.y += speed * deltaTimeSeconds;
+	}
+
+	if (mesh->getTimeAccumulator() > treshold)
+	{
+		mesh->setTimeAccumulator(0.0f);
+	}
+
+	mesh->setScale(scale);
+
+	if (mesh != nullptr)
+	{
+		modelMatrix = glm::mat3(1);
+		modelMatrix *= transformUtils::Translate(mesh->getMovingPosition());
+		modelMatrix *= transformUtils::Translate(radius, 0);
+		modelMatrix *= transformUtils::Scale(mesh->getScale());
+		modelMatrix *= transformUtils::Translate(-radius, 0);
+
+		glm::mat4 model = ConvertMat3to4(modelMatrix);
+
+		RenderTexturedMesh(mesh->getMesh(),
+							shaders["textureShader"], model,
+							mapTextures["gold"],
+							mapTextures["gold"]);
+	}
+}
+
+
 void InitClass::RendMovingShooter()
 {
-    // If the mouse is pressed, render the shooter at the mouse coordinates
-    if (window->MouseHold(GLFW_MOUSE_BUTTON_LEFT))
-    {
-        if (pressedCorrectly)
-        {
-            holdingShooter = true;
-        }
+	// If the mouse is pressed, render the shooter at the mouse coordinates
+	if (window->MouseHold(GLFW_MOUSE_BUTTON_LEFT))
+	{
+		if (pressedCorrectly)
+		{
+			holdingShooter = true;
+		}
 
-        int mouseX = window->GetCursorPosition().x;
-        int mouseY = window->GetCursorPosition().y;
+		int mouseX = window->GetCursorPosition().x;
+		int mouseY = window->GetCursorPosition().y;
 
-        // Set mouse coordinates to world coordinates
-        mouseY = window->GetResolution().y - mouseY;
+		// Set mouse coordinates to world coordinates
+		mouseY = window->GetResolution().y - mouseY;
 
-        {
-            if (pressedCorrectly && !releasedCorrectly)
-            {
-                // Rend the shooter at the mouse coordinates
-                if (isSimpleShooter)
-                {
-                    Mesh* mesh = shapes::CreateShooter("shooterMouse", glm::vec3(0, 0, 2), DEFAULT_SQUARE_SIDE * SHOOTER_SCALE, holdingShooterColor, true);
-                    modelMatrix = glm::mat3(1);
-                    modelMatrix *= transformUtils::Translate((float)mouseX, (float)mouseY);
-                    RenderMesh2D(mesh, shaders["VertexColor"], modelMatrix);
-                }
-                else if (isSpawner)
-                {
-                    Mesh* mesh = shapes::CreateSpawner("shooterMouse", glm::vec3(0, 0, 2), DEFAULT_SQUARE_SIDE * SHOOTER_SCALE, holdingShooterColor, glm::vec3(1.0f, 1.0f, 1.0f), true);
-                    modelMatrix = glm::mat3(1);
-                    modelMatrix *= transformUtils::Translate((float)mouseX, (float)mouseY);
-                    RenderMesh2D(mesh, shaders["VertexColor"], modelMatrix);
-                } 
-                else if (isCannon)
-                {
-                    Mesh* mesh = shapes::CreateCannon("shooterMouse", glm::vec3(0, 0, 2), DEFAULT_SQUARE_SIDE * SHOOTER_SCALE, holdingShooterColor, glm::vec3(1.0f, 1.0f, 1.0f), true);
+		{
+			if (pressedCorrectly && !releasedCorrectly)
+			{
+				// Rend the shooter at the mouse coordinates
+				if (isSimpleShooter)
+				{
+					Mesh* mesh = shapes::CreateShooter("shooterMouse", glm::vec3(0, 0, 2), DEFAULT_SQUARE_SIDE * SHOOTER_SCALE, holdingShooterColor, true);
+					modelMatrix = glm::mat3(1);
+					modelMatrix *= transformUtils::Translate((float)mouseX, (float)mouseY);
+					glm::mat4 model = ConvertMat3to4(modelMatrix);
+
+					// Make string from type
+					std::string typeString = colorUtils->GetStringTypeByColor(holdingShooterColor);
+					RenderTexturedMesh(mesh,
+										shaders["textureShader"], model,
+										mapTextures[typeString],
+										mapTextures[typeString]);
+				}
+				else if (isSpawner)
+				{
+					Mesh* mesh = shapes::CreateSpawner("shooterMouse", glm::vec3(0, 0, 2), DEFAULT_SQUARE_SIDE * SHOOTER_SCALE, holdingShooterColor, glm::vec3(1.0f, 1.0f, 1.0f), true);
+					modelMatrix = glm::mat3(1);
+					modelMatrix *= transformUtils::Translate((float)mouseX, (float)mouseY);
+
+					glm::mat4 model = ConvertMat3to4(modelMatrix);
+
+					RenderTexturedMesh(mesh,
+										shaders["textureShader"], model,
+										mapTextures["spawnerS"],
+										mapTextures["spawnerM"]);
+				} 
+				else if (isCannon)
+				{
+					Mesh* mesh = shapes::CreateCannon("shooterMouse", glm::vec3(0, 0, 2), DEFAULT_SQUARE_SIDE * SHOOTER_SCALE, holdingShooterColor, glm::vec3(1.0f, 1.0f, 1.0f), true);
+					modelMatrix = glm::mat3(1);
+					modelMatrix *= transformUtils::Translate((float)mouseX, (float)mouseY);
+
+					glm::mat4 model = ConvertMat3to4(modelMatrix);
+
+					RenderTexturedMesh(mesh,
+						shaders["textureShader"], model,
+						mapTextures["cannon"],
+						mapTextures["cannon_inside"]);
+				}
+				else if (isEater)
+				{
+					Mesh* mesh = shapes::CreateEater("shooterMouse", glm::vec3(0, 0, 2), DEFAULT_SQUARE_SIDE * SHOOTER_SCALE, holdingShooterColor, glm::vec3(1.0f, 0.0f, 0.0f), true);
 					modelMatrix = glm::mat3(1);
 					modelMatrix *= transformUtils::Translate((float)mouseX, (float)mouseY);
 					RenderMesh2D(mesh, shaders["VertexColor"], modelMatrix);
-                }
-                else if (isEater)
-                {
-                    Mesh* mesh = shapes::CreateEater("shooterMouse", glm::vec3(0, 0, 2), DEFAULT_SQUARE_SIDE * SHOOTER_SCALE, holdingShooterColor, glm::vec3(1.0f, 0.0f, 0.0f), true);
+				} 
+				else if (isSnowCannon)
+				{
+					Mesh* mesh = shapes::CreateSnowCannon("shooterMouse", glm::vec3(0, 0, 2), DEFAULT_SQUARE_SIDE * SHOOTER_SCALE, holdingShooterColor, glm::vec3(1.0f, 1.0f, 1.0f), true);
 					modelMatrix = glm::mat3(1);
 					modelMatrix *= transformUtils::Translate((float)mouseX, (float)mouseY);
-					RenderMesh2D(mesh, shaders["VertexColor"], modelMatrix);
-                } 
-                else if (isSnowCannon)
-                {
-                    Mesh* mesh = shapes::CreateSnowCannon("shooterMouse", glm::vec3(0, 0, 2), DEFAULT_SQUARE_SIDE * SHOOTER_SCALE, holdingShooterColor, glm::vec3(1.0f, 1.0f, 1.0f), true);
-                    modelMatrix = glm::mat3(1);
-                    modelMatrix *= transformUtils::Translate((float)mouseX, (float)mouseY);
-                    RenderMesh2D(mesh, shaders["VertexColor"], modelMatrix);
-                }
-            }
-        }
-    }
-    else
-    {
+
+					glm::mat4 model = ConvertMat3to4(modelMatrix);
+
+					RenderTexturedMesh(mesh,
+						shaders["textureShader"], model,
+						mapTextures["ice"],
+						mapTextures["beacon"]);
+				}
+			}
+		}
+	}
+	else
+	{
 		holdingShooter = false;
 	}
 
 
-    // If released correctly, render the shooter in the corresponding placing
-    if (releasedCorrectly && staticScene->getPlacing(releaseRow, releaseCol)->getTaken() == false)
-    {
-        // Set the corresponding placing as taken
-        staticScene->getPlacing(releaseRow, releaseCol)->setTaken(true);
-        staticScene->getPlacing(releaseRow, releaseCol)->setColor(releasedShooterColor);
-        releasedCorrectly = false;
-        releaseRow = -1;
-        releaseCol = -1;
-    }
+	// If released correctly, render the shooter in the corresponding placing
+	if (releasedCorrectly && staticScene->getPlacing(releaseRow, releaseCol)->getTaken() == false)
+	{
+		// Set the corresponding placing as taken
+		staticScene->getPlacing(releaseRow, releaseCol)->setTaken(true);
+		staticScene->getPlacing(releaseRow, releaseCol)->setColor(releasedShooterColor);
+		releasedCorrectly = false;
+		releaseRow = -1;
+		releaseCol = -1;
+	}
 }
 
 
 void InitClass::CreateActiveShooters()
 {
-    // Create the active shooters
-    for (int i = 0; i < PLACINGS_SIZE; i++)
-    {
-        for (int j = 0; j < PLACINGS_SIZE; j++)
-        {
-            if (staticScene->getPlacing(i, j)->getTaken() && staticScene->getPlacing(i, j)->getVisibility() && !createdShooter[i][j])
-            {
-                MeshWrapperShooter* shooter = nullptr;
-                if (isSimpleShooter)
-                {
-                    shooter = new MeshWrapperShooter(
-                        shapes::CreateShooter("shooterActive",
-                            glm::vec3(0, 0, 2),
-                            DEFAULT_SQUARE_SIDE * SHOOTER_SCALE,
-                            staticScene->getPlacing(i, j)->getColor(),
-                            true));
-                    shooter->setColor(staticScene->getPlacing(i, j)->getColor());
-                    shooter->setShooterPower(colorUtils->SelectShootingPowerByColor(staticScene->getPlacing(i, j)->getColor()));
-                } 
-                else if (isSpawner)
-                {
-                    shooter = new MeshWrapperShooter(
-                        shapes::CreateSpawner("shooterActive",
-                        glm::vec3(0, 0, 2),
-                        DEFAULT_SQUARE_SIDE * SHOOTER_SCALE,
-                        staticScene->getPlacing(i, j)->getColor(),
-                        glm::vec3(1.0f, 1.0f, 1.0f),
-                        true));
-                    shooter->setColor(staticScene->getPlacing(i, j)->getColor());
-                    shooter->setShooterPower(colorUtils->SelectShootingPowerByColor(staticScene->getPlacing(i, j)->getColor()));
-                    shooter->setIsSpawner(true);
-                } 
-                else if (isEater)
-                {
-                    shooter = new MeshWrapperShooter(
-                        shapes::CreateEater("shooterActive",
-                            glm::vec3(0, 0, 2),
-                            DEFAULT_SQUARE_SIDE * SHOOTER_SCALE,
-                            staticScene->getPlacing(i, j)->getColor(),
-                            glm::vec3(1.0f, 0.0f, 0.0f),
-                            true));
-                    shooter->setColor(staticScene->getPlacing(i, j)->getColor());
-                    shooter->setShooterPower(colorUtils->SelectShootingPowerByColor(staticScene->getPlacing(i, j)->getColor()));
-                    shooter->setIsEater(true);
-                }
-                else if (isCannon)
-                {
-                    shooter = new MeshWrapperShooter(
-						shapes::CreateCannon("shooterActive",
-                        glm::vec3(0, 0, 2),
-                        DEFAULT_SQUARE_SIDE * SHOOTER_SCALE,
-                        staticScene->getPlacing(i, j)->getColor(),
-                        glm::vec3(1.0f, 1.0f, 1.0f),
-                        true));
+	// Create the active shooters
+	for (int i = 0; i < PLACINGS_SIZE; i++)
+	{
+		for (int j = 0; j < PLACINGS_SIZE; j++)
+		{
+			if (staticScene->getPlacing(i, j)->getTaken() &&
+				staticScene->getPlacing(i, j)->getVisibility() &&
+				!createdShooter[i][j])
+			{
+				MeshWrapperShooter* shooter = nullptr;
+				if (isSimpleShooter)
+				{
+					shooter = new MeshWrapperShooter(
+						shapes::CreateShooter("shooterActive",
+							glm::vec3(0, 0, 2),
+							DEFAULT_SQUARE_SIDE * SHOOTER_SCALE,
+							staticScene->getPlacing(i, j)->getColor(),
+							true));
 					shooter->setColor(staticScene->getPlacing(i, j)->getColor());
 					shooter->setShooterPower(colorUtils->SelectShootingPowerByColor(staticScene->getPlacing(i, j)->getColor()));
-                    shooter->setIsCannon(true);
-                }
-                else if (isSnowCannon)
-                {
-                    shooter = new MeshWrapperShooter(
+				} 
+				else if (isSpawner)
+				{
+					shooter = new MeshWrapperShooter(
+						shapes::CreateSpawner("shooterActive",
+						glm::vec3(0, 0, 2),
+						DEFAULT_SQUARE_SIDE * SHOOTER_SCALE,
+						staticScene->getPlacing(i, j)->getColor(),
+						glm::vec3(1.0f, 1.0f, 1.0f),
+						true));
+					shooter->setColor(staticScene->getPlacing(i, j)->getColor());
+					shooter->setShooterPower(colorUtils->SelectShootingPowerByColor(staticScene->getPlacing(i, j)->getColor()));
+					shooter->setIsSpawner(true);
+				} 
+				else if (isEater)
+				{
+					shooter = new MeshWrapperShooter(
+						shapes::CreateEater("shooterActive",
+							glm::vec3(0, 0, 2),
+							DEFAULT_SQUARE_SIDE * SHOOTER_SCALE,
+							staticScene->getPlacing(i, j)->getColor(),
+							glm::vec3(1.0f, 0.0f, 0.0f),
+							true));
+					shooter->setColor(staticScene->getPlacing(i, j)->getColor());
+					shooter->setShooterPower(colorUtils->SelectShootingPowerByColor(staticScene->getPlacing(i, j)->getColor()));
+					shooter->setIsEater(true);
+				}
+				else if (isCannon)
+				{
+					shooter = new MeshWrapperShooter(
+						shapes::CreateCannon("shooterActive",
+						glm::vec3(0, 0, 2),
+						DEFAULT_SQUARE_SIDE * SHOOTER_SCALE,
+						staticScene->getPlacing(i, j)->getColor(),
+						glm::vec3(1.0f, 1.0f, 1.0f),
+						true));
+					shooter->setColor(staticScene->getPlacing(i, j)->getColor());
+					shooter->setShooterPower(colorUtils->SelectShootingPowerByColor(staticScene->getPlacing(i, j)->getColor()));
+					shooter->setIsCannon(true);
+				}
+				else if (isSnowCannon)
+				{
+					shooter = new MeshWrapperShooter(
 						shapes::CreateSnowCannon("shooterActive",
-                            							glm::vec3(0, 0, 2),
-                            							DEFAULT_SQUARE_SIDE * SHOOTER_SCALE,
-                            							staticScene->getPlacing(i, j)->getColor(),
-                            							glm::vec3(1.0f, 1.0f, 1.0f),
-                            							true));
+														glm::vec3(0, 0, 2),
+														DEFAULT_SQUARE_SIDE * SHOOTER_SCALE,
+														staticScene->getPlacing(i, j)->getColor(),
+														glm::vec3(1.0f, 1.0f, 1.0f),
+														true));
 					shooter->setColor(staticScene->getPlacing(i, j)->getColor());
 					shooter->setShooterPower(colorUtils->SelectShootingPowerByColor(staticScene->getPlacing(i, j)->getColor()));
 					shooter->setIsSnowCannon(true);
-                }
+				}
 
-                // Set position of the shooter
-                glm::vec2 position;
-                position.x = (float)(MATRIX_CORNER_X + j * MATRIX_DISPLACEMENT + DEFAULT_SQUARE_SIDE / 8);
-                if (isSpawner)
-                {
-                    position.x += DEFAULT_SQUARE_SIDE / 2.5;
-                } 
-                if (isCannon)
-                {
+				// Set position of the shooter
+				glm::vec2 position;
+				position.x = (float)(MATRIX_CORNER_X + j * MATRIX_DISPLACEMENT + DEFAULT_SQUARE_SIDE / 8);
+				if (isSpawner)
+				{
+					position.x += DEFAULT_SQUARE_SIDE / 2.5;
+				} 
+				if (isCannon)
+				{
 					position.x += DEFAULT_SQUARE_SIDE / 2;
 				}
-                if (isEater)
-                {
-                    position.x += DEFAULT_SQUARE_SIDE / 2.5;
-                }
-                if (isSnowCannon)
-                {
-                    position.x += DEFAULT_SQUARE_SIDE / 3;
-                }
+				if (isEater)
+				{
+					position.x += DEFAULT_SQUARE_SIDE / 2.5;
+				}
+				if (isSnowCannon)
+				{
+					position.x += DEFAULT_SQUARE_SIDE / 3;
+				}
 
-                position.y = (float)(MATRIX_CORNER_Y + MATRIX_DISPLACEMENT * i + DEFAULT_SQUARE_SIDE / 2);
-                shooter->setPosition(position);
-                shooter->setMovingPosition(position);
+				position.y = (float)(MATRIX_CORNER_Y + MATRIX_DISPLACEMENT * i + DEFAULT_SQUARE_SIDE / 2);
+				shooter->setPosition(position);
+				shooter->setMovingPosition(position);
 
-                // Add the shooter in the matrix of shooters
-                shootersMatrix[i][j] = shooter;
+				// Add the shooter in the matrix of shooters
+				shootersMatrix[i][j] = shooter;
 
-                // Set the corresponding placing as taken
-                staticScene->getPlacing(i, j)->setTaken(true);
+				// Set the corresponding placing as taken
+				staticScene->getPlacing(i, j)->setTaken(true);
 
-                // Set the shooter as created
-                createdShooter[i][j] = true;
-            }
-        }
-    }
+				// Set the shooter as created
+				createdShooter[i][j] = true;
+			}
+		}
+	}
 }
 
 
 void InitClass::RendShootingLine()
 {
-    for (int line = 0; line < PLACINGS_SIZE; line++)
-    {
-        for (int i = 0; i < lineBullets[line].size(); i++)
-        {
-            if (lineBullets[line][i]->getBulletWasShot())
-            {
-                // Increment translation of the shooting bullet
-                glm::vec2 t = lineBullets[line][i]->getTranslate();
-                t.x += currentTimer * 300;
-                lineBullets[line][i]->setTranslate(t);
+	for (int line = 0; line < PLACINGS_SIZE; line++)
+	{
+		for (int i = 0; i < lineBullets[line].size(); i++)
+		{
+			if (lineBullets[line][i]->getBulletWasShot())
+			{
+				// Increment translation of the shooting bullet
+				glm::vec2 t = lineBullets[line][i]->getTranslate();
+				t.x += currentTimer * 300;
+				lineBullets[line][i]->setTranslate(t);
 
-                float angularStep = lineBullets[line][i]->getAngularStep() + currentTimer * 6;
-                lineBullets[line][i]->setAngularStep(angularStep);
+				float angularStep = lineBullets[line][i]->getAngularStep() + currentTimer * 6;
+				lineBullets[line][i]->setAngularStep(angularStep);
 
-                // Start with an identity matrix
-                modelMatrix = glm::mat3(1);
+				// Start with an identity matrix
+				modelMatrix = glm::mat3(1);
 
-                // Translate to the bullet's position
-                modelMatrix *= transformUtils::Translate(lineBullets[line][i]->getPosition());
+				// Translate to the bullet's position
+				modelMatrix *= transformUtils::Translate(lineBullets[line][i]->getPosition());
 
-                // Translate by the increment (newXPosition)
-                modelMatrix *= transformUtils::Translate(t);
+				// Translate by the increment (newXPosition)
+				modelMatrix *= transformUtils::Translate(t);
 
-                // Set moving position
-                glm::vec2 position = lineBullets[line][i]->getMovingPosition();
-                position.x += currentTimer * 300;
-                lineBullets[line][i]->setMovingPosition(position);
+				// Set moving position
+				glm::vec2 position = lineBullets[line][i]->getMovingPosition();
+				position.x += currentTimer * 300;
+				lineBullets[line][i]->setMovingPosition(position);
 
-                if (!lineBullets[line][i]->getIsRocket())
-                {
-                    //  Rotate the bullet around its center
-                    modelMatrix *= transformUtils::Rotate(angularStep);
-                }
+				if (!lineBullets[line][i]->getIsRocket())
+				{
+					//  Rotate the bullet around its center
+					modelMatrix *= transformUtils::Rotate(angularStep);
+				}
 
-                // Render the bullet with the transformations and the texture
-                glm::mat4 model = glm::mat4(
-                    modelMatrix[0][0], modelMatrix[0][1], modelMatrix[0][2], 0.f,
-                    modelMatrix[1][0], modelMatrix[1][1], modelMatrix[1][2], 0.f,
-                    0.f, 0.f, modelMatrix[2][2], 0.f,
-                    modelMatrix[2][0], modelMatrix[2][1], 0.f, 1.f);
-                RenderTexturedMesh(lineBullets[line][i]->getMesh(),
-                    								   shaders["textureShader"], model,
-                    								   mapTextures["bullet1"],
-                    								   mapTextures["bullet2"]);
-            }
-        }
-    }
+				if (!lineBullets[line][i]->getIsSnowball() && !lineBullets[line][i]->getIsRocket())
+				{
+					// Render the bullet with the transformations and the texture
+					glm::mat4 model = ConvertMat3to4(modelMatrix);
+
+					// Make string from type
+					std::string typeString = colorUtils->GetStringTypeByColor(lineBullets[line][i]->getColor());
+
+					RenderTexturedMesh(lineBullets[line][i]->getMesh(),
+						shaders["textureShader"], model,
+						mapTextures[typeString],
+						mapTextures[typeString]);
+				} 
+				else
+				{
+					// Render classic mesh with RenderMesh2D
+					RenderMesh2D(lineBullets[line][i]->getMesh(), shaders["VertexColor"], modelMatrix);
+				}
+
+			}
+		}
+	}
 }
 
 
 void InitClass::DetectHitBarCollision()
 {
-    for (int line = 0; line < PLACINGS_SIZE; line++)
-    {
-        for (int i = 0; i < lineEnemies[line].size(); i++)
-        {
-            if (lineEnemies[line][i]->getEnemyStarted() && !lineEnemies[line][i]->getEnemyIsDead())
-            {
+	for (int line = 0; line < PLACINGS_SIZE; line++)
+	{
+		for (int i = 0; i < lineEnemies[line].size(); i++)
+		{
+			if (lineEnemies[line][i]->getEnemyStarted() && !lineEnemies[line][i]->getEnemyIsDead())
+			{
 				// Check if the enemy is in the hit bar
-                if (lineEnemies[line][i]->getMovingPosition().x >= INITIAL_X &&
-                    lineEnemies[line][i]->getMovingPosition().x <= INITIAL_X + DEFAULT_ENEMY_SIZE)
-                {
-                    lineEnemies[line][i]->setEnemyStarted(false);
-                    lineEnemies[line][i]->setEnemyIsDead(true);
-                    
-                    // Decrease the number of health points
-                    if (!lineEnemies[line][i]->getIsHealthPoint())
-                    {
-                        if (nrOfHealthPoints > 0)
-                        {
-                            nrOfHealthPoints--;
-                        }
-                    }
+				if (lineEnemies[line][i]->getMovingPosition().x >= INITIAL_X &&
+					lineEnemies[line][i]->getMovingPosition().x <= INITIAL_X + DEFAULT_ENEMY_SIZE)
+				{
+					lineEnemies[line][i]->setEnemyStarted(false);
+					lineEnemies[line][i]->setEnemyIsDead(true);
+					
+					// Decrease the number of health points
+					if (!lineEnemies[line][i]->getIsHealthPoint())
+					{
+						if (nrOfHealthPoints > 0)
+						{
+							nrOfHealthPoints--;
+						}
+					}
 
-                    // Remove the enemy from the line
-                    lineEnemies[line].erase(lineEnemies[line].begin() + i);
+					// Remove the enemy from the line
+					lineEnemies[line].erase(lineEnemies[line].begin() + i);
 				}
 			}
 		}
@@ -754,77 +919,77 @@ void InitClass::DetectHitBarCollision()
 
 void InitClass::DetectBulletEnemyCollision()
 {
-    float radiusSum = DEFAULT_BULLET_SIZE / 2 + DEFAULT_ENEMY_SIZE / 2;
+	float radiusSum = DEFAULT_BULLET_SIZE / 2 + DEFAULT_ENEMY_SIZE / 2;
 
-    for (int line = 0; line < PLACINGS_SIZE; line++)
-    {
-        for (int i = 0; i < lineBullets[line].size(); i++)
-        {
-            if (lineBullets[line][i]->getBulletWasShot() && !lineBullets[line][i]->getBulletHitSomething())
-            {
-                for (int j = 0; j < lineEnemies[line].size(); j++)
-                {
-                    glm::vec3 colorBullet = lineBullets[line][i]->getColor();
-                    glm::vec3 colorEnemy = lineEnemies[line][j]->getColor();
+	for (int line = 0; line < PLACINGS_SIZE; line++)
+	{
+		for (int i = 0; i < lineBullets[line].size(); i++)
+		{
+			if (lineBullets[line][i]->getBulletWasShot() && !lineBullets[line][i]->getBulletHitSomething())
+			{
+				for (int j = 0; j < lineEnemies[line].size(); j++)
+				{
+					glm::vec3 colorBullet = lineBullets[line][i]->getColor();
+					glm::vec3 colorEnemy = lineEnemies[line][j]->getColor();
 
-                    if (lineEnemies[line][j]->getEnemyStarted() &&
-                        !lineEnemies[line][j]->getEnemyIsDead() && 
-                        (colorBullet == colorEnemy || lineBullets[line][i]->getIsRocket() || lineBullets[line][i]->getIsSnowball()))
-                    {
+					if (lineEnemies[line][j]->getEnemyStarted() &&
+						!lineEnemies[line][j]->getEnemyIsDead() && 
+						(colorBullet == colorEnemy || lineBullets[line][i]->getIsRocket() || lineBullets[line][i]->getIsSnowball()))
+					{
 						// Check if the bullet radius + enemy radius is greater than the distance between their centers
-                        float distance = glm::distance(lineBullets[line][i]->getMovingPosition(), lineEnemies[line][j]->getMovingPosition());
+						float distance = glm::distance(lineBullets[line][i]->getMovingPosition(), lineEnemies[line][j]->getMovingPosition());
 
-                        if (radiusSum > distance)
-                        {
-                            if (!lineBullets[line][i]->getIsSnowball())
-                            { 
-							    lineEnemies[line][j]->setEnemyHealth(lineEnemies[line][j]->getEnemyHealth() - lineBullets[line][i]->getShooterPower());
-                            }
-                            else
-                            {
-                                // Set enemy as frozen
-                                lineEnemies[line][j]->setIsFrozen(true);
-                                // Set position
-                                lineEnemies[line][j]->setFrozenPosition(lineEnemies[line][j]->getMovingPosition());
-                            }
+						if (radiusSum > distance)
+						{
+							if (!lineBullets[line][i]->getIsSnowball())
+							{ 
+								lineEnemies[line][j]->setEnemyHealth(lineEnemies[line][j]->getEnemyHealth() - lineBullets[line][i]->getShooterPower());
+							}
+							else
+							{
+								// Set enemy as frozen
+								lineEnemies[line][j]->setIsFrozen(true);
+								// Set position
+								lineEnemies[line][j]->setFrozenPosition(lineEnemies[line][j]->getMovingPosition());
+							}
 
 							// Check if the enemy is dead
-                            if (lineEnemies[line][j]->getEnemyHealth() <= 0)
-                            {
+							if (lineEnemies[line][j]->getEnemyHealth() <= 0)
+							{
 								lineEnemies[line][j]->setEnemyStarted(false);
-							    lineEnemies[line][j]->setEnemyIsDead(true);
+								lineEnemies[line][j]->setEnemyIsDead(true);
 
 								// Increase the number of health points if we hit a health point
-                                if (lineEnemies[line][j]->getIsHealthPoint())
-                                {
-                                    if (nrOfHealthPoints < HEALTH_POINTS_COUNT)
-                                    {
+								if (lineEnemies[line][j]->getIsHealthPoint())
+								{
+									if (nrOfHealthPoints < HEALTH_POINTS_COUNT)
+									{
 										nrOfHealthPoints++;
 									}
 								}
-                                
-                                // Set enemy as disapearing and add it to disappearing list
-                                lineEnemies[line][j]->setDisapearing(true);
-                                disapearingEnemies[line].push_back(lineEnemies[line][j]);
+								
+								// Set enemy as disapearing and add it to disappearing list
+								lineEnemies[line][j]->setDisapearing(true);
+								disapearingEnemies[line].push_back(lineEnemies[line][j]);
 
-                                // Remove the enemy from the line
+								// Remove the enemy from the line
 								lineEnemies[line].erase(lineEnemies[line].begin() + j);
 							}
-                            // Set bullet properties
-                            lineBullets[line][i]->setBulletWasShot(false);
+							// Set bullet properties
+							lineBullets[line][i]->setBulletWasShot(false);
 
-                            // Set bullet hit something
-                            lineBullets[line][i]->setBulletHitSomething(true);
+							// Set bullet hit something
+							lineBullets[line][i]->setBulletHitSomething(true);
 						}
 					}
 				}
 			}
 
-            // Remove the bullet from the line if it hit something
-            if (lineBullets[line][i]->getBulletHitSomething())
-            {
-                lineBullets[line].erase(lineBullets[line].begin() + i);
-            }
+			// Remove the bullet from the line if it hit something
+			if (lineBullets[line][i]->getBulletHitSomething())
+			{
+				lineBullets[line].erase(lineBullets[line].begin() + i);
+			}
 		}
 	}
 }
@@ -832,54 +997,54 @@ void InitClass::DetectBulletEnemyCollision()
 
 bool InitClass::LineContainsEnemyOfColor(int line, glm::vec3 color)
 {
-    // Checks if there are enemies of color given on the line
-    for (int i = 0; i < lineEnemies[line].size(); i++)
-    {
-        if (lineEnemies[line][i]->getEnemyStarted() && !lineEnemies[line][i]->getEnemyIsDead())
-        {
-            if (lineEnemies[line][i]->getColor() == color)
-            {
-                return true;
+	// Checks if there are enemies of color given on the line
+	for (int i = 0; i < lineEnemies[line].size(); i++)
+	{
+		if (lineEnemies[line][i]->getEnemyStarted() && !lineEnemies[line][i]->getEnemyIsDead())
+		{
+			if (lineEnemies[line][i]->getColor() == color)
+			{
+				return true;
 			}
 		}
 	}
 
-    return false;
+	return false;
 }
 
 
 bool InitClass::LineContainsEnemy(int line)
 {
-    // Checks if there is an enemy on the line
-    for (int i = 0; i < lineEnemies[line].size(); i++)
-    {
-        if (lineEnemies[line][i]->getEnemyStarted() && !lineEnemies[line][i]->getEnemyIsDead())
-        {
+	// Checks if there is an enemy on the line
+	for (int i = 0; i < lineEnemies[line].size(); i++)
+	{
+		if (lineEnemies[line][i]->getEnemyStarted() && !lineEnemies[line][i]->getEnemyIsDead())
+		{
 			return true;
 		}
 	}
 
-    return false;
+	return false;
 }
 
 
 void InitClass::RendDisapearingEnemies()
 {
-    // Rend the enemies from the disapearing lists
-    for (int line = 0; line < PLACINGS_SIZE; line++)
-    {
-        for (int i = 0; i < disapearingEnemies[line].size(); i++)
-        {
-            if (disapearingEnemies[line][i]->getDisapearing())
-            {
+	// Rend the enemies from the disapearing lists
+	for (int line = 0; line < PLACINGS_SIZE; line++)
+	{
+		for (int i = 0; i < disapearingEnemies[line].size(); i++)
+		{
+			if (disapearingEnemies[line][i]->getDisapearing())
+			{
 				// Make a disapear animation for the enemy in the corresponding placing in the matrix of enemies
-                if (disapearingEnemies[line][i]->getDisappearSteps() > 0)
-                {
+				if (disapearingEnemies[line][i]->getDisappearSteps() > 0)
+				{
 					DisapearAnimation(currentTimer, disapearingEnemies[line][i], DEFAULT_ENEMY_SIZE / 2);
 					disapearingEnemies[line][i]->setDisappearSteps(disapearingEnemies[line][i]->getDisappearSteps() - 1);
 				}
-                else
-                {
+				else
+				{
 					// Remove the enemy from the disapearing list
 					disapearingEnemies[line].erase(disapearingEnemies[line].begin() + i);
 				}
@@ -891,159 +1056,204 @@ void InitClass::RendDisapearingEnemies()
 
 void InitClass::RendStartingCoins()
 {
-    // Rends 5 coins at the beginning of the game under the health points
-    modelMatrix = glm::mat3(1);
-    modelMatrix *= transformUtils::Translate(HEALTH_POINTS_X, HEALTH_POINTS_Y - COINS_Y_DISPLACEMENT);
-    bool loweredLine = false;
-    int lastRow = 0;
-    for (int i = 0; i < nrOfCoins; i++)
-    {
-        int row = i / COINS_COUNT_PER_ROW;
-        if (row != lastRow)
-        {
-            loweredLine = false;
+	// Rends 5 coins at the beginning of the game under the health points
+	modelMatrix = glm::mat3(1);
+	modelMatrix *= transformUtils::Translate(HEALTH_POINTS_X, HEALTH_POINTS_Y - COINS_Y_DISPLACEMENT);
+	bool loweredLine = false;
+	int lastRow = 0;
+	for (int i = 0; i < nrOfCoins; i++)
+	{
+		int row = i / COINS_COUNT_PER_ROW;
+		if (row != lastRow)
+		{
+			loweredLine = false;
 			lastRow = row;
-        }
-
-        if (i)
-        {
-            modelMatrix *= transformUtils::Translate(DEFAULT_STAR_COST_SIZE, 0);
-        }
-
-        if (!loweredLine && row)
-        {
-            modelMatrix *= transformUtils::Translate(0, -DEFAULT_STAR_COST_SIZE);
-            modelMatrix *= transformUtils::Translate(-DEFAULT_STAR_COST_SIZE * COINS_COUNT_PER_ROW, 0);
-            loweredLine = true;
 		}
 
-        RenderMesh2D(shapes::CreateStar("starCost", glm::vec3(0, 0, 2), DEFAULT_STAR_COST_SIZE, glm::vec3(1.0f, 0.84f, 0.0f), true),
-                     shaders["VertexColor"],
-                     modelMatrix);
-    }
+		if (i)
+		{
+			modelMatrix *= transformUtils::Translate(DEFAULT_STAR_COST_SIZE, 0);
+		}
+
+		if (!loweredLine && row)
+		{
+			modelMatrix *= transformUtils::Translate(0, -DEFAULT_STAR_COST_SIZE);
+			modelMatrix *= transformUtils::Translate(-DEFAULT_STAR_COST_SIZE * COINS_COUNT_PER_ROW, 0);
+			loweredLine = true;
+		}
+
+		// Create model matrix for coin for textured mesh
+		glm::mat4 model = ConvertMat3to4(modelMatrix);
+
+		RenderTexturedMesh(shapes::CreateStar("starCost", glm::vec3(0, 0, 2), 
+							DEFAULT_STAR_COST_SIZE,
+							glm::vec3(1.0f, 0.84f, 0.0f), true),
+							shaders["textureShader"], model,
+							mapTextures["gold"],
+							mapTextures["gold"]);
+	}
 }
 
 
 void InitClass::RendActiveShooters()
 {
-    // Rend the active shooters
-    for (int i = 0; i < PLACINGS_SIZE; i++)
-    {
-        for (int j = 0; j < PLACINGS_SIZE; j++)
-        {
-            if (staticScene->getPlacing(i, j)->getTaken() && staticScene->getPlacing(i, j)->getVisibility() && createdShooter[i][j] && shootersMatrix[i][j] != nullptr)
-            {
-                modelMatrix = glm::mat3(1);
-                modelMatrix *= transformUtils::Translate(shootersMatrix[i][j]->getPosition());
-                RenderMesh2D(shootersMatrix[i][j]->getMesh(), shaders["VertexColor"], modelMatrix);
+	// Rend the active shooters
+	for (int i = 0; i < PLACINGS_SIZE; i++)
+	{
+		for (int j = 0; j < PLACINGS_SIZE; j++)
+		{
+			if (staticScene->getPlacing(i, j)->getTaken() && 
+				staticScene->getPlacing(i, j)->getVisibility() && 
+				createdShooter[i][j] && 
+				shootersMatrix[i][j] != nullptr)
+			{
+				modelMatrix = glm::mat3(1);
+				modelMatrix *= transformUtils::Translate(shootersMatrix[i][j]->getPosition());
+				if (!shootersMatrix[i][j]->getIsSpawner() && !shootersMatrix[i][j]->getIsCannon() && !shootersMatrix[i][j]->getIsSnowCannon())
+				{
+					RenderMesh2D(shootersMatrix[i][j]->getMesh(), shaders["VertexColor"], modelMatrix);
+				}
+				else if (shootersMatrix[i][j]->getIsSpawner())
+				{
+					glm::mat4 model = ConvertMat3to4(modelMatrix);
+					// Set color of the spawner
+					shootersMatrix[i][j]->setColor(staticScene->getPlacing(i, j)->getColor());
+					RenderTexturedMesh(shootersMatrix[i][j]->getMesh(),
+						shaders["textureShader"], model,
+						mapTextures["purple"],
+						mapTextures["spawnerM"]);
+				}
+				else if (shootersMatrix[i][j]->getIsCannon())
+				{
+					glm::mat4 model = ConvertMat3to4(modelMatrix);
 
-                // Increase timer of shooters[i][j]
-                shootersMatrix[i][j]->setTimeAccumulator(shootersMatrix[i][j]->getTimeAccumulator() + currentTimer);
+					RenderTexturedMesh(shootersMatrix[i][j]->getMesh(),
+						shaders["textureShader"], model,
+						mapTextures["spawner"],
+						mapTextures["cannon_inside"]);
+				}
+				else if (shootersMatrix[i][j]->getIsSnowCannon())
+				{
+					glm::mat4 model = ConvertMat3to4(modelMatrix);
 
-                // Dont rend spawners that surpased time limit of 6 seconds
-                if (shootersMatrix[i][j]->getIsSpawner() && shootersMatrix[i][j]->getTimeAccumulator() > SPAWNER_LIFE_TIME)
-                {
+					RenderTexturedMesh(shootersMatrix[i][j]->getMesh(),
+						shaders["textureShader"], model,
+						mapTextures["ice"],
+						mapTextures["beacon"]);
+				}
+
+				// Increase timer of shooters[i][j]
+				shootersMatrix[i][j]->setTimeAccumulator(shootersMatrix[i][j]->getTimeAccumulator() + currentTimer);
+
+				// Dont rend spawners that surpased time limit of 6 seconds
+				if (shootersMatrix[i][j]->getIsSpawner() && shootersMatrix[i][j]->getTimeAccumulator() > SPAWNER_LIFE_TIME)
+				{
 					staticScene->getPlacing(i, j)->setTaken(false);
 					createdShooter[i][j] = false;
 					shootersMatrix[i][j] = nullptr;
 
-                    continue;
+					continue;
 				}
 
-                // Decrease coins by cost of shooter
-                if (!shootersMatrix[i][j]->getCostWasPaid())
-                {
-                    if (nrOfCoins >= colorUtils->GetShooterCostByColor(staticScene->getPlacing(i, j)->getColor()))
-                    {
-                        nrOfCoins -= colorUtils->GetShooterCostByColor(staticScene->getPlacing(i, j)->getColor());
-                        shootersMatrix[i][j]->setCostWasPaid(true);
-                    }
-                    else
-                    {
-                        // If we don't have enough coins, remove the shooter from the matrix of shooters
-                        staticScene->getPlacing(i, j)->setTaken(false);
-                        createdShooter[i][j] = false;
-                        shootersMatrix[i][j] = nullptr;
-                    }
-                }
-            }
-        }
-    }
+				// Decrease coins by cost of shooter
+				if (!shootersMatrix[i][j]->getCostWasPaid())
+				{
+					if (nrOfCoins >= colorUtils->GetShooterCostByColor(staticScene->getPlacing(i, j)->getColor()))
+					{
+						nrOfCoins -= colorUtils->GetShooterCostByColor(staticScene->getPlacing(i, j)->getColor());
+						shootersMatrix[i][j]->setCostWasPaid(true);
+					}
+					else
+					{
+						// If we don't have enough coins, remove the shooter from the matrix of shooters
+						staticScene->getPlacing(i, j)->setTaken(false);
+						createdShooter[i][j] = false;
+						shootersMatrix[i][j] = nullptr;
+					}
+				}
+			}
+		}
+	}
 }
 
 
 void InitClass::GenerateRandomCoins()
 {
-    int screenWidth = window->GetResolution().x;
-    int screenHeight = window->GetResolution().y;
+	int screenWidth = window->GetResolution().x;
+	int screenHeight = window->GetResolution().y;
 
-    // Generates stars at random positions on the screen that can be collected with click
-    if (coinSpawnTimer > COIN_SPAWN_RATE)
-    {
-        int randomX = rand() % screenWidth;
-        int randomY = rand() % screenHeight;
-
-        if (randomX > MATRIX_DISPLACEMENT * 4 || randomY > MATRIX_DISPLACEMENT * 4)
-        {
-            glm::vec2 position;
-            position.x = (float)(randomX);
-            position.y = (float)(randomY);
-
-            MeshWrapperCoin* star = new MeshWrapperCoin(shapes::CreateStar("star", glm::vec3(0, 0, 2), DEFAULT_BULLET_SIZE, glm::vec3(1.0f, 0.98f, 0.97f), true));
-            star->setPosition(position);
-            star->setMovingPosition(position);
-            star->setCoinWasCollected(false);
-            randomCoins.push_back(star);
-
-            coinSpawnTimer = 0.0f;
-        }
-    }
-
-    // Generate a big coin at random position on the screen that can be collected with click
-    if (bigCoinTimer > BIG_COIN_SPAWN_RATE)
-    {
+	// Generates stars at random positions on the screen that can be collected with click
+	if (coinSpawnTimer > COIN_SPAWN_RATE)
+	{
 		int randomX = rand() % screenWidth;
 		int randomY = rand() % screenHeight;
 
-        if (randomX > MATRIX_DISPLACEMENT * 4 || randomY > MATRIX_DISPLACEMENT * 4)
-        {
-            glm::vec2 position;
-            position.x = (float)(randomX);
-            position.y = (float)(randomY);
+		if (randomX > MATRIX_DISPLACEMENT * 4 || randomY > MATRIX_DISPLACEMENT * 4)
+		{
+			glm::vec2 position;
+			position.x = (float)(randomX);
+			position.y = (float)(randomY);
 
-            MeshWrapperCoin* star = new MeshWrapperCoin(shapes::CreateStar("star", glm::vec3(0, 0, 2), (double)(DEFAULT_BULLET_SIZE * 1.5), glm::vec3(1.0f, 0.87f, 0.0f), true));
-            star->setPosition(position);
-            star->setMovingPosition(position);
-            star->setCoinWasCollected(false);
-            star->setIsBigCoin(true);
-            randomCoins.push_back(star);
+			MeshWrapperCoin* star = new MeshWrapperCoin(shapes::CreateStar("star", glm::vec3(0, 0, 2), DEFAULT_BULLET_SIZE, glm::vec3(1.0f, 0.98f, 0.97f), true));
+			star->setPosition(position);
+			star->setMovingPosition(position);
+			star->setCoinWasCollected(false);
+			randomCoins.push_back(star);
 
-            bigCoinTimer = 0.0f;
-        }
+			coinSpawnTimer = 0.0f;
+		}
+	}
+
+	// Generate a big coin at random position on the screen that can be collected with click
+	if (bigCoinTimer > BIG_COIN_SPAWN_RATE)
+	{
+		int randomX = rand() % screenWidth;
+		int randomY = rand() % screenHeight;
+
+		if (randomX > MATRIX_DISPLACEMENT * 4 || randomY > MATRIX_DISPLACEMENT * 4)
+		{
+			glm::vec2 position;
+			position.x = (float)(randomX);
+			position.y = (float)(randomY);
+
+			MeshWrapperCoin* star = new MeshWrapperCoin(shapes::CreateStar("star", glm::vec3(0, 0, 2), (double)(DEFAULT_BULLET_SIZE * 1.5), glm::vec3(1.0f, 0.87f, 0.0f), true));
+			star->setPosition(position);
+			star->setMovingPosition(position);
+			star->setCoinWasCollected(false);
+			star->setIsBigCoin(true);
+			randomCoins.push_back(star);
+
+			bigCoinTimer = 0.0f;
+		}
 	}
 }
 
 
 void InitClass::RendRandomCoins()
 {
-    // Rend all coins from list
-    for (int i = 0; i < randomCoins.size(); i++)
-    {
-        if (!randomCoins[i]->getCoinWasCollected())
-        {
-            glm::mat3 modelMatrix = glm::mat3(1);
-            if (randomCoins[i]->getIsBigCoin())
-            {
-                // Make a pulsing animation for big coins
-                randomCoins[i]->setTimeAccumulator(randomCoins[i]->getTimeAccumulator() + currentTimer);
+	// Rend all coins from list
+	for (int i = 0; i < randomCoins.size(); i++)
+	{
+		if (!randomCoins[i]->getCoinWasCollected())
+		{
+			glm::mat3 modelMatrix = glm::mat3(1);
+			if (randomCoins[i]->getIsBigCoin())
+			{
+				// Make a pulsing animation for big coins
+				randomCoins[i]->setTimeAccumulator(randomCoins[i]->getTimeAccumulator() + currentTimer);
 				PulsingAnimation(currentTimer, randomCoins[i], (double)(DEFAULT_BULLET_SIZE * 1.5), 1.0f, 0.5f);
 			}
-            else
-            {
-                modelMatrix = glm::mat3(1);
-                modelMatrix *= transformUtils::Translate(randomCoins[i]->getPosition());
-                RenderMesh2D(randomCoins[i]->getMesh(), shaders["VertexColor"], modelMatrix);
-            }
+			else
+			{
+				modelMatrix = glm::mat3(1);
+				modelMatrix *= transformUtils::Translate(randomCoins[i]->getPosition());
+				// Create model matrix for coin for textured mesh
+				glm::mat4 model = ConvertMat3to4(modelMatrix);
+				RenderTexturedMesh(randomCoins[i]->getMesh(),
+									shaders["textureShader"], model,
+									mapTextures["white"],
+									mapTextures["white"]);
+			}
 		}
 	}
 }
@@ -1051,56 +1261,62 @@ void InitClass::RendRandomCoins()
 
 void InitClass::DetectShooterEnemyCollision()
 {
-    // Detects if enemy colided with shooter and then makes a disappearing animation for the shooter
-    for (int line = 0; line < PLACINGS_SIZE; line++)
-    {
-        for (int i = 0; i < lineEnemies[line].size(); i++)
-        {
-            if (lineEnemies[line][i]->getEnemyStarted() && !lineEnemies[line][i]->getEnemyIsDead() && !lineEnemies[line][i]->getIsHealthPoint())
-            {
-                for (int j = 0; j < PLACINGS_SIZE; j++)
-                {
-                    if (staticScene->getPlacing(line, j)->getTaken() && staticScene->getPlacing(line, j)->getVisibility() && shootersMatrix[line][j] != nullptr && createdShooter[line][j])
-                    {
-						float distance = glm::distance(lineEnemies[line][i]->getMovingPosition(), shootersMatrix[line][j]->getMovingPosition());
-                        glm::vec3 colorEnemy = lineEnemies[line][i]->getColor();
-                        glm::vec3 colorShooter = shootersMatrix[line][j]->getColor();
+	// Detects if enemy colided with shooter and then makes a disappearing animation for the shooter
+	for (int line = 0; line < PLACINGS_SIZE; line++)
+	{
+		for (int i = 0; i < lineEnemies[line].size(); i++)
+		{
+			if (lineEnemies[line][i]->getEnemyStarted() && !lineEnemies[line][i]->getEnemyIsDead() && !lineEnemies[line][i]->getIsHealthPoint())
+			{
+				for (int j = 0; j < PLACINGS_SIZE; j++)
+				{
+					if (staticScene->getPlacing(line, j)->getTaken() &&
+						staticScene->getPlacing(line, j)->getVisibility())
+					{
+						if (shootersMatrix[line][j] != nullptr &&
+							createdShooter[line][j] &&
+							lineEnemies[line][i] != nullptr)
+						{
+							float distance = glm::distance(lineEnemies[line][i]->getMovingPosition(), shootersMatrix[line][j]->getMovingPosition());
+							glm::vec3 colorEnemy = lineEnemies[line][i]->getColor();
+							glm::vec3 colorShooter = shootersMatrix[line][j]->getColor();
 
-                        if (distance < DEFAULT_ENEMY_SIZE / 2 + DEFAULT_SQUARE_SIDE * SHOOTER_SCALE / 2)
-                        {
-                            if (!shootersMatrix[line][j]->getIsEater() &&
-                                (colorEnemy == colorShooter || shootersMatrix[line][j]->getIsCannon() || shootersMatrix[line][j]->getIsSnowCannon() || shootersMatrix[line][j]->getIsSpawner()))
-                            {
-                                // Remove the shooter from the matrix of shooters
-                                staticScene->getPlacing(line, j)->setDisapearing(true);
-                                staticScene->getPlacing(line, j)->setTaken(false);
-                                createdShooter[i][j] = false;
-                            }
-                            else if (shootersMatrix[line][j]->getIsEater())
-                            {
-                                // Let eater eat 2 enemies and make a pulsation animation when eating them
-                                if (shootersMatrix[line][j]->getEatenCount() < 2)
-                                {
-                                    // Make a pulsation animation for the shooter
-                                    shootersMatrix[line][j]->setTimeAccumulator(shootersMatrix[line][j]->getTimeAccumulator() + currentTimer);
-                                    EatingAnimation(currentTimer, shootersMatrix[line][j], DEFAULT_SQUARE_SIDE * SPAWNER_SCALE / 10);
-
-									shootersMatrix[line][j]->setEatenCount(shootersMatrix[line][j]->getEatenCount() + 1);
-									lineEnemies[line][i]->setEnemyStarted(false);
-									lineEnemies[line][i]->setEnemyIsDead(true);
-									lineEnemies[line][i]->setDisapearing(true);
-									disapearingEnemies[line].push_back(lineEnemies[line][i]);
-									lineEnemies[line].erase(lineEnemies[line].begin() + i);
-
+							if (distance < DEFAULT_ENEMY_SIZE / 2 + DEFAULT_SQUARE_SIDE * SHOOTER_SCALE / 2)
+							{
+								if (!shootersMatrix[line][j]->getIsEater() &&
+									(colorEnemy == colorShooter || shootersMatrix[line][j]->getIsCannon() || shootersMatrix[line][j]->getIsSnowCannon() || shootersMatrix[line][j]->getIsSpawner()))
+								{
+									// Remove the shooter from the matrix of shooters
+									staticScene->getPlacing(line, j)->setDisapearing(true);
+									staticScene->getPlacing(line, j)->setTaken(false);
+									createdShooter[i][j] = false;
 								}
-                                else
-                                {
-									shootersMatrix[line][j]->setEatenCount(0);
-                                    staticScene->getPlacing(line, j)->setDisapearing(true);
-                                    staticScene->getPlacing(line, j)->setTaken(false);
-                                    createdShooter[i][j] = false;
+								else if (shootersMatrix[line][j]->getIsEater())
+								{
+									// Let eater eat 2 enemies and make a pulsation animation when eating them
+									if (shootersMatrix[line][j]->getEatenCount() < 2)
+									{
+										// Make a pulsation animation for the shooter
+										shootersMatrix[line][j]->setTimeAccumulator(shootersMatrix[line][j]->getTimeAccumulator() + currentTimer);
+										EatingAnimation(currentTimer, shootersMatrix[line][j], DEFAULT_SQUARE_SIDE * SPAWNER_SCALE / 10);
+
+										shootersMatrix[line][j]->setEatenCount(shootersMatrix[line][j]->getEatenCount() + 1);
+										lineEnemies[line][i]->setEnemyStarted(false);
+										lineEnemies[line][i]->setEnemyIsDead(true);
+										lineEnemies[line][i]->setDisapearing(true);
+										disapearingEnemies[line].push_back(lineEnemies[line][i]);
+										lineEnemies[line].erase(lineEnemies[line].begin() + i);
+
+									}
+									else
+									{
+										shootersMatrix[line][j]->setEatenCount(0);
+										staticScene->getPlacing(line, j)->setDisapearing(true);
+										staticScene->getPlacing(line, j)->setTaken(false);
+										createdShooter[i][j] = false;
+									}
 								}
-                            }
+							}
 						}
 					}
 				}
@@ -1112,50 +1328,50 @@ void InitClass::DetectShooterEnemyCollision()
 
 bool InitClass::SpawnerIsOnTheTable()
 {
-    // Checks if there is a spawner on the table shootersMatrix
-    for (int i = 0; i < PLACINGS_SIZE; i++)
-    {
-        for (int j = 0; j < PLACINGS_SIZE; j++)
-        {
-            if (staticScene->getPlacing(i, j)->getTaken() && staticScene->getPlacing(i, j)->getVisibility() && shootersMatrix[i][j]->getIsSpawner())
-            {
+	// Checks if there is a spawner on the table shootersMatrix
+	for (int i = 0; i < PLACINGS_SIZE; i++)
+	{
+		for (int j = 0; j < PLACINGS_SIZE; j++)
+		{
+			if (staticScene->getPlacing(i, j)->getTaken() && staticScene->getPlacing(i, j)->getVisibility() && shootersMatrix[i][j]->getIsSpawner())
+			{
 				return true;
-            }
-        }
-    }
+			}
+		}
+	}
 
-    return false;
+	return false;
 }
 
 
 void InitClass::MakeShootersDisappear()
 {
-    // Make shooters dissapear from the table
-    // After 10 bullets if normal shooter, after 5 if cannon
-    for (int i = 0; i < PLACINGS_SIZE; i++)
-    {
-        for (int j = 0; j < PLACINGS_SIZE; j++)
-        {
-            if (staticScene->getPlacing(i, j)->getTaken() && staticScene->getPlacing(i, j)->getVisibility() && shootersMatrix[i][j] != nullptr && createdShooter[i][j])
-            {
-                if (shootersMatrix[i][j]->getBulletCount() > 10 && !shootersMatrix[i][j]->getIsCannon())
-                {
+	// Make shooters dissapear from the table
+	// After 10 bullets if normal shooter, after 5 if cannon
+	for (int i = 0; i < PLACINGS_SIZE; i++)
+	{
+		for (int j = 0; j < PLACINGS_SIZE; j++)
+		{
+			if (staticScene->getPlacing(i, j)->getTaken() && staticScene->getPlacing(i, j)->getVisibility() && shootersMatrix[i][j] != nullptr && createdShooter[i][j])
+			{
+				if (shootersMatrix[i][j]->getBulletCount() > 10 && !shootersMatrix[i][j]->getIsCannon())
+				{
 					staticScene->getPlacing(i, j)->setDisapearing(true);
 					staticScene->getPlacing(i, j)->setTaken(false);
 					createdShooter[i][j] = false;
 				}
-                else if (shootersMatrix[i][j]->getBulletCount() > 5 && shootersMatrix[i][j]->getIsCannon())
-                {
+				else if (shootersMatrix[i][j]->getBulletCount() > 5 && shootersMatrix[i][j]->getIsCannon())
+				{
 					staticScene->getPlacing(i, j)->setDisapearing(true);
 					staticScene->getPlacing(i, j)->setTaken(false);
 					createdShooter[i][j] = false;
 				}
-                else if (shootersMatrix[i][j]->getBulletCount() > 7 && shootersMatrix[i][j]->getIsSnowCannon())
-                {
-                    staticScene->getPlacing(i, j)->setDisapearing(true);
-                    staticScene->getPlacing(i, j)->setTaken(false);
-                    createdShooter[i][j] = false;
-                }
+				else if (shootersMatrix[i][j]->getBulletCount() > 7 && shootersMatrix[i][j]->getIsSnowCannon())
+				{
+					staticScene->getPlacing(i, j)->setDisapearing(true);
+					staticScene->getPlacing(i, j)->setTaken(false);
+					createdShooter[i][j] = false;
+				}
 			}
 		}
 	}
@@ -1163,11 +1379,11 @@ void InitClass::MakeShootersDisappear()
 
 void InitClass::ClearRandomCoins()
 {
-    // Clear the random coins list
-    for (int i = 0; i < randomCoins.size(); i++)
-    {
-        if (randomCoins[i]->getCoinWasCollected())
-        {
+	// Clear the random coins list
+	for (int i = 0; i < randomCoins.size(); i++)
+	{
+		if (randomCoins[i]->getCoinWasCollected())
+		{
 			randomCoins.erase(randomCoins.begin() + i);
 		}
 	}
@@ -1175,62 +1391,62 @@ void InitClass::ClearRandomCoins()
 
 void InitClass::EatingAnimation(float deltaTimeSeconds, MeshWrapper* mesh, float radius)
 {
-    // Make a eating like animation using a sinusoidal function
-    float angularStep = mesh->getAngularStep() + deltaTimeSeconds;
-    mesh->setAngularStep(angularStep);
+	// Make a eating like animation using a sinusoidal function
+	float angularStep = mesh->getAngularStep() + deltaTimeSeconds;
+	mesh->setAngularStep(angularStep);
 
-    glm::vec2 scale = mesh->getScale();
-    scale.x = radius * (1 + sin(angularStep)) / 2;
-    scale.y = radius * (1 + sin(angularStep)) / 2;
-    mesh->setScale(scale);
+	glm::vec2 scale = mesh->getScale();
+	scale.x = radius * (1 + sin(angularStep)) / 2;
+	scale.y = radius * (1 + sin(angularStep)) / 2;
+	mesh->setScale(scale);
 
-    glm::vec3 color = mesh->getColor();
-    color.r = (1 + sin(angularStep)) / 2;
-    color.g = (1 + sin(angularStep)) / 2;
-    color.b = (1 + sin(angularStep)) / 2;
-    mesh->setColor(color);
+	glm::vec3 color = mesh->getColor();
+	color.r = (1 + sin(angularStep)) / 2;
+	color.g = (1 + sin(angularStep)) / 2;
+	color.b = (1 + sin(angularStep)) / 2;
+	mesh->setColor(color);
 
-    modelMatrix = glm::mat3(1);
-    modelMatrix *= transformUtils::Translate(mesh->getPosition());
-    modelMatrix *= transformUtils::Rotate(angularStep);
-    modelMatrix *= transformUtils::Scale(scale);
-    RenderMesh2D(mesh->getMesh(), shaders["VertexColor"], modelMatrix);
+	modelMatrix = glm::mat3(1);
+	modelMatrix *= transformUtils::Translate(mesh->getPosition());
+	modelMatrix *= transformUtils::Rotate(angularStep);
+	modelMatrix *= transformUtils::Scale(scale);
+	RenderMesh2D(mesh->getMesh(), shaders["VertexColor"], modelMatrix);
 }
 
 void InitClass::UpdateEnemiesTimers(float deltaTimeSeconds)
 {
-    // Increases all active enemies timers
-    for (int line = 0; line < PLACINGS_SIZE; line++)
-    {
-        for (int i = 0; i < lineEnemies[line].size(); i++)
-        {
-            if (lineEnemies[line][i]->getEnemyStarted() && !lineEnemies[line][i]->getEnemyIsDead())
-            {
-                lineEnemies[line][i]->setTimeAccumulator(lineEnemies[line][i]->getTimeAccumulator() + deltaTimeSeconds);
-            }
-        }
-    }
+	// Increases all active enemies timers
+	for (int line = 0; line < PLACINGS_SIZE; line++)
+	{
+		for (int i = 0; i < lineEnemies[line].size(); i++)
+		{
+			if (lineEnemies[line][i]->getEnemyStarted() && !lineEnemies[line][i]->getEnemyIsDead())
+			{
+				lineEnemies[line][i]->setTimeAccumulator(lineEnemies[line][i]->getTimeAccumulator() + deltaTimeSeconds);
+			}
+		}
+	}
 }
 
 void InitClass::UnfreezeEnemies()
 {
-    // Unfreeze enemies after 5 seconds usign their internal timers
-    for (int line = 0; line < PLACINGS_SIZE; line++)
-    {
-        for (int i = 0; i < lineEnemies[line].size(); i++)
-        {
-            if (lineEnemies[line][i]->getEnemyStarted() &&
-                !lineEnemies[line][i]->getEnemyIsDead() && 
-                lineEnemies[line][i]->getIsFrozen())
-            {
-                if (lineEnemies[line][i]->getTimeAccumulator() > 10.0f)
-                {
+	// Unfreeze enemies after 5 seconds usign their internal timers
+	for (int line = 0; line < PLACINGS_SIZE; line++)
+	{
+		for (int i = 0; i < lineEnemies[line].size(); i++)
+		{
+			if (lineEnemies[line][i]->getEnemyStarted() &&
+				!lineEnemies[line][i]->getEnemyIsDead() && 
+				lineEnemies[line][i]->getIsFrozen())
+			{
+				if (lineEnemies[line][i]->getTimeAccumulator() > 10.0f)
+				{
 					lineEnemies[line][i]->setIsFrozen(false);
 					lineEnemies[line][i]->setTimeAccumulator(0.0f);
 
-                    // Set position and moving position to frozen position
-                    lineEnemies[line][i]->setPosition(lineEnemies[line][i]->getFrozenPosition());
-                    lineEnemies[line][i]->setMovingPosition(lineEnemies[line][i]->getFrozenPosition());
+					// Set position and moving position to frozen position
+					lineEnemies[line][i]->setPosition(lineEnemies[line][i]->getFrozenPosition());
+					lineEnemies[line][i]->setMovingPosition(lineEnemies[line][i]->getFrozenPosition());
 				}
 			}
 		}
@@ -1239,9 +1455,9 @@ void InitClass::UnfreezeEnemies()
 
 void InitClass::IncreaseDifficulty()
 {
-    // Every 10 seconds make enemies come in bigger numbers, faster and increase their health by a point
-    if (difficultyTimer > 10.0f)
-    {
+	// Every 10 seconds make enemies come in bigger numbers, faster and increase their health by a point
+	if (difficultyTimer > 10.0f)
+	{
 		colorUtils->IncreaseDifficulty();
 		difficultyTimer = 0.0f;
 	}
@@ -1249,135 +1465,134 @@ void InitClass::IncreaseDifficulty()
 
 void InitClass::CheckGameOver()
 {
-    // Rend a game over message with survived time if we lost all health points
-    if (nrOfHealthPoints <= 0)
-    {
-        gameOver = true;
+	// Rend a game over message with survived time if we lost all health points
+	if (nrOfHealthPoints <= 0)
+	{
+		gameOver = true;
 	}
 }
 
 void InitClass::MakeGameOver()
 {
-    modelMatrix = glm::mat3(1);
-    modelMatrix *= transformUtils::Translate(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2);
-    RenderMesh2D(shapes::CreateGameOverSymbol("gameOver", glm::vec3(0, 0, 2), 200, glm::vec3(1.0f, 0.0f, 0.0f), true), shaders["VertexColor"], modelMatrix);
+	modelMatrix = glm::mat3(1);
+	modelMatrix *= transformUtils::Translate(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2);
+	RenderMesh2D(shapes::CreateGameOverSymbol("gameOver", glm::vec3(0, 0, 2), 200, glm::vec3(1.0f, 0.0f, 0.0f), true), shaders["VertexColor"], modelMatrix);
 }
 
 void InitClass::RendDisapearingShooters()
 {
-    // Rend the disapearing shooters
-    for (int i = 0; i < PLACINGS_SIZE; i++)
-    {
-        for (int j = 0; j < PLACINGS_SIZE; j++)
-        {
-            if (staticScene->getPlacing(i, j)->getDisapearing() && staticScene->getPlacing(i, j)->getVisibility())
-            {
-                // Make a disapear animation for the shooter in the corresponding placing in the matrix of shooters
-                if (shootersMatrix[i][j]->getDisappearSteps() > 0)
-                {
-                    if (shootersMatrix[i][j]->getIsCannon() ||
-                        shootersMatrix[i][j]->getIsSnowCannon() ||
-                        shootersMatrix[i][j]->getIsSpawner())
-                    {
-                        DisapearAnimation(currentTimer, shootersMatrix[i][j], DEFAULT_SQUARE_SIDE / 8);
-                    } 
-                    else if (shootersMatrix[i][j]->getIsEater())
-                    {
+	// Rend the disapearing shooters
+	for (int i = 0; i < PLACINGS_SIZE; i++)
+	{
+		for (int j = 0; j < PLACINGS_SIZE; j++)
+		{
+			if (staticScene->getPlacing(i, j)->getDisapearing() && staticScene->getPlacing(i, j)->getVisibility())
+			{
+				// Make a disapear animation for the shooter in the corresponding placing in the matrix of shooters
+				if (shootersMatrix[i][j]->getDisappearSteps() > 0)
+				{
+					if (shootersMatrix[i][j]->getIsCannon() ||
+						shootersMatrix[i][j]->getIsSnowCannon() ||
+						shootersMatrix[i][j]->getIsSpawner())
+					{
+						DisapearAnimation(currentTimer, shootersMatrix[i][j], DEFAULT_SQUARE_SIDE / 8);
+					} 
+					else if (shootersMatrix[i][j]->getIsEater())
+					{
 						DisapearAnimation(currentTimer, shootersMatrix[i][j], DEFAULT_SQUARE_SIDE / 16);
 					}
-                    else 
-                    {
-                        DisapearAnimation(currentTimer, shootersMatrix[i][j], DEFAULT_SQUARE_SIDE / 2);
-                    }
+					else 
+					{
+						DisapearAnimation(currentTimer, shootersMatrix[i][j], DEFAULT_SQUARE_SIDE / 2);
+					}
 
-                    shootersMatrix[i][j]->setDisappearSteps(shootersMatrix[i][j]->getDisappearSteps() - 1);
-                }
-                else
-                {
-                    staticScene->getPlacing(i, j)->setDisapearing(false);
-                    createdShooter[i][j] = false;
-                    shootersMatrix[i][j] = nullptr;
-                }
-            }
-        }
-    }
+					shootersMatrix[i][j]->setDisappearSteps(shootersMatrix[i][j]->getDisappearSteps() - 1);
+				}
+				else
+				{
+					staticScene->getPlacing(i, j)->setDisapearing(false);
+					createdShooter[i][j] = false;
+					shootersMatrix[i][j] = nullptr;
+				}
+			}
+		}
+	}
 
 }
 
 
 void InitClass::GenerateEnemies()
 {
-    if (slowDownTimer < 3.0f)
-    {
+	if (slowDownTimer < 3.0f)
+	{
 		return;
 	}
 
-    int i = colorUtils->SelectRandomLine();
-    glm::vec3 color = colorUtils->getRandomColor();
-    glm::vec3 insideColor = colorUtils->getRandomColor();
+	int i = colorUtils->SelectRandomLine();
+	glm::vec3 color = colorUtils->getRandomColor();
+	glm::vec3 insideColor = colorUtils->getRandomColor();
 
-    // Create bullets with a timer
-    if (lineEnemyTimer[i][colorUtils->GetTypeByColor(color)] > colorUtils->GetSpawnIntervalByColor(color) + colorUtils->getRandomFloat(5.0f, 15.0f))
-    {
-        MeshWrapperEnemy* hex = new MeshWrapperEnemy(shapes::CreateHexagon("enemy", glm::vec3(0, 0, 2), DEFAULT_BULLET_SIZE, color, insideColor, true));
-        if (healthPointSpawnRate < 25.0f)
-        {
-            hex = new MeshWrapperEnemy(shapes::CreateHexagon("enemy", glm::vec3(0, 0, 2), DEFAULT_BULLET_SIZE, color, insideColor, true));
-        }
-        else
-        {
+	// Create bullets with a timer
+	if (lineEnemyTimer[i][colorUtils->GetTypeByColor(color)] > colorUtils->GetSpawnIntervalByColor(color) + colorUtils->getRandomFloat(5.0f, 15.0f))
+	{
+		MeshWrapperEnemy* hex = new MeshWrapperEnemy(shapes::CreateHexagon("enemy", glm::vec3(0, 0, 2), DEFAULT_BULLET_SIZE, color, insideColor, true));
+		if (healthPointSpawnRate < 25.0f)
+		{
+			hex = new MeshWrapperEnemy(shapes::CreateHexagon("enemy", glm::vec3(0, 0, 2), DEFAULT_BULLET_SIZE, color, insideColor, true));
+		}
+		else
+		{
 			hex = new MeshWrapperEnemy(shapes::CreateHeart("healthPoint", glm::vec3(0, 0, 2), DEFAULT_BULLET_SIZE, color, true));
-            hex->setIsHealthPoint(true);
-            healthPointSpawnRate = 0.0f;
+			hex->setIsHealthPoint(true);
+			healthPointSpawnRate = 0.0f;
 		}
 
-        hex->setPosition((float)(SCREEN_WIDTH), (float)(MATRIX_CORNER_Y + MATRIX_DISPLACEMENT * i + DEFAULT_SQUARE_SIDE / 2));
-        hex->setMovingPosition((float)(SCREEN_WIDTH), (float)(MATRIX_CORNER_Y + MATRIX_DISPLACEMENT * i + DEFAULT_SQUARE_SIDE / 2));
-        hex->setEnemyStarted(true);
-        hex->setColor(color);
-        hex->setEnemyHealth(colorUtils->SelectHealthByColor(color));
-        hex->setEnemySpeed(colorUtils->SelectSpeedByColor(color));
+		hex->setPosition((float)(SCREEN_WIDTH), (float)(MATRIX_CORNER_Y + MATRIX_DISPLACEMENT * i + DEFAULT_SQUARE_SIDE / 2));
+		hex->setMovingPosition((float)(SCREEN_WIDTH), (float)(MATRIX_CORNER_Y + MATRIX_DISPLACEMENT * i + DEFAULT_SQUARE_SIDE / 2));
+		hex->setEnemyStarted(true);
+		hex->setColor(color);
+		hex->setEnemyHealth(colorUtils->SelectHealthByColor(color));
+		hex->setEnemySpeed(colorUtils->SelectSpeedByColor(color));
 
-        lineEnemies[i].push_back(hex);
+		lineEnemies[i].push_back(hex);
 
-        lineEnemyTimer[i][colorUtils->GetTypeByColor(color)] = 0;
-    }
+		lineEnemyTimer[i][colorUtils->GetTypeByColor(color)] = 0;
+	}
 
-    slowDownTimer = 0.0f;
+	slowDownTimer = 0.0f;
 }
 
 
 void InitClass::RendEnemies()
 {
-    for (int line = 0; line < PLACINGS_SIZE; line++)
-    {
-        for (int i = 0; i < lineEnemies[line].size(); i++)
-        {
-            if (lineEnemies[line][i]->getEnemyStarted() &&
-                !lineEnemies[line][i]->getEnemyIsDead() &&
-                !lineEnemies[line][i]->getDisapearing())
-            {
+	for (int line = 0; line < PLACINGS_SIZE; line++)
+	{
+		for (int i = 0; i < lineEnemies[line].size(); i++)
+		{
+			if (lineEnemies[line][i]->getEnemyStarted() &&
+				!lineEnemies[line][i]->getEnemyIsDead() &&
+				!lineEnemies[line][i]->getDisapearing())
+			{
 				// Increment translation of the moving enemy
 				glm::vec2 t = lineEnemies[line][i]->getTranslate();
 				t.x -= currentTimer * 100 * lineEnemies[line][i]->getEnemySpeed();
 				lineEnemies[line][i]->setTranslate(t);
 				modelMatrix = glm::mat3(1);
-    
-                if (!lineEnemies[line][i]->getIsFrozen())
-                {
-				    modelMatrix *= transformUtils::Translate(lineEnemies[line][i]->getPosition());
-				    modelMatrix *= transformUtils::Translate(t);
-				    // Set moving position
-				    glm::vec2 position = lineEnemies[line][i]->getMovingPosition();
-				    position.x -= currentTimer * 100 * lineEnemies[line][i]->getEnemySpeed();
-				    lineEnemies[line][i]->setMovingPosition(position);
-                }
-                else
-                {
+	
+				if (!lineEnemies[line][i]->getIsFrozen())
+				{
+					modelMatrix *= transformUtils::Translate(lineEnemies[line][i]->getPosition());
+					modelMatrix *= transformUtils::Translate(t);
+					// Set moving position
+					glm::vec2 position = lineEnemies[line][i]->getMovingPosition();
+					position.x -= currentTimer * 100 * lineEnemies[line][i]->getEnemySpeed();
+					lineEnemies[line][i]->setMovingPosition(position);
+				}
+				else
+				{
 					modelMatrix *= transformUtils::Translate(lineEnemies[line][i]->getFrozenPosition());
 				}
 
-				// Render the bullet with the transformations
 				RenderMesh2D(lineEnemies[line][i]->getMesh(), shaders["VertexColor"], modelMatrix);
 			}
 		}
@@ -1387,264 +1602,267 @@ void InitClass::RendEnemies()
 
 void InitClass::RendShootersCosts()
 {
-    modelMatrix = glm::mat3(1);
-    modelMatrix *= transformUtils::Translate(PLACEHOLDERS_X, PLACEHOLDERS_Y);
-    int lastRow = 0;
-    bool loweredLine = false;
+	modelMatrix = glm::mat3(1);
+	modelMatrix *= transformUtils::Translate(PLACEHOLDERS_X, PLACEHOLDERS_Y);
+	int lastRow = 0;
+	bool loweredLine = false;
 
-    for (int i = 0; i < PLACEHOLDERS_COUNT_TOTAL; i++)
-    {
-        int row = i / PLACEHOLDERS_COUNT;
-        if (row != lastRow)
-        {
-            loweredLine = false;
-            lastRow = row;
-        }
+	for (int i = 0; i < PLACEHOLDERS_COUNT_TOTAL; i++)
+	{
+		int row = i / PLACEHOLDERS_COUNT;
+		if (row != lastRow)
+		{
+			loweredLine = false;
+			lastRow = row;
+		}
 
-        if (i)
-        {
-            modelMatrix *= transformUtils::Translate(SHOOTER_DISPLACEMENT, 0);
-        }
+		if (i)
+		{
+			modelMatrix *= transformUtils::Translate(SHOOTER_DISPLACEMENT, 0);
+		}
 
-        if (!loweredLine && row)
-        {
-            modelMatrix *= transformUtils::Translate(0, -MATRIX_DISPLACEMENT);
-            modelMatrix *= transformUtils::Translate(-SHOOTER_DISPLACEMENT * PLACEHOLDERS_COUNT, 0);
-            loweredLine = true;
-        }
+		if (!loweredLine && row)
+		{
+			modelMatrix *= transformUtils::Translate(0, -MATRIX_DISPLACEMENT);
+			modelMatrix *= transformUtils::Translate(-SHOOTER_DISPLACEMENT * PLACEHOLDERS_COUNT, 0);
+			loweredLine = true;
+		}
 
-        if (staticScene->getPlaceHolders()[i]->getVisibility())
-        {
-            glm::mat3 modelMatrixCopy = modelMatrix;
-            int nr = i;
-            if (i == 5)
-            {
-                nr = 4;
-            }
-            else if (i == 6)
-            {
-                nr = 0;
-            }
-            else if (i == 7)
-            {
-                nr = 2;
-            }
+		if (staticScene->getPlaceHolders()[i]->getVisibility())
+		{
+			glm::mat3 modelMatrixCopy = modelMatrix;
+			int nr = i;
+			if (i == 5)
+			{
+				nr = 4;
+			}
+			else if (i == 6)
+			{
+				nr = 0;
+			}
+			else if (i == 7)
+			{
+				nr = 2;
+			}
 
-            for (int j = 0; j <= nr; j++)
-            {
-                if (j)
-                {
-                    modelMatrixCopy *= transformUtils::Translate(DEFAULT_STAR_COST_SIZE, 0);
-                }
+			for (int j = 0; j <= nr; j++)
+			{
+				if (j)
+				{
+					modelMatrixCopy *= transformUtils::Translate(DEFAULT_STAR_COST_SIZE, 0);
+				}
 
-                RenderMesh2D(shapes::CreateStar("starCost",
-                                                glm::vec3(0, 0, 2),
-                                                DEFAULT_STAR_COST_SIZE,
-                                                glm::vec3(1.0f, 0.84f, 0.0f), 
-                                                true),
-                             shaders["VertexColor"],
-                             modelMatrixCopy);
-            }
-        }
-    }
+				glm::mat4 model = ConvertMat3to4(modelMatrixCopy);
+
+				RenderTexturedMesh(shapes::CreateStar("starCost",
+										glm::vec3(0, 0, 2), 
+										DEFAULT_STAR_COST_SIZE, 
+										glm::vec3(1.0f, 0.84f, 0.0f),
+										true),
+										shaders["textureShader"], model,
+										mapTextures["gold"],
+										mapTextures["gold"]);
+			}
+		}
+	}
 }
 
 
 void InitClass::Update(float deltaTimeSeconds)
 {
-    if (!gameOver)
-    {
-        currentTimer = deltaTimeSeconds;
-        for (int i = 0; i < PLACINGS_SIZE; i++)
-        {
-            for (int j = 0; j < PLACINGS_SIZE; j++)
-            {
-                timedShooting[i][j] += deltaTimeSeconds;
-            }
-        }
+	if (!gameOver)
+	{
+		currentTimer = deltaTimeSeconds;
+		for (int i = 0; i < PLACINGS_SIZE; i++)
+		{
+			for (int j = 0; j < PLACINGS_SIZE; j++)
+			{
+				timedShooting[i][j] += deltaTimeSeconds;
+			}
+		}
 
-        for (int i = 0; i < PLACINGS_SIZE; i++)
-        {
-            for (int j = 0; j < TYPES_OF_SHOOTERS; j++)
-            {
-                lineEnemyTimer[i][j] += deltaTimeSeconds;
-            }
-        }
-        slowDownTimer += deltaTimeSeconds;
-        healthPointSpawnRate += deltaTimeSeconds;
-        coinSpawnTimer += deltaTimeSeconds;
-        bigCoinTimer += deltaTimeSeconds;
-        difficultyTimer += deltaTimeSeconds;
+		for (int i = 0; i < PLACINGS_SIZE; i++)
+		{
+			for (int j = 0; j < TYPES_OF_SHOOTERS; j++)
+			{
+				lineEnemyTimer[i][j] += deltaTimeSeconds;
+			}
+		}
+		slowDownTimer += deltaTimeSeconds;
+		healthPointSpawnRate += deltaTimeSeconds;
+		coinSpawnTimer += deltaTimeSeconds;
+		bigCoinTimer += deltaTimeSeconds;
+		difficultyTimer += deltaTimeSeconds;
 
-        RendPlacings();
-        RendHitBar();
-        RendShooters();
-        RendHealthPoints();
-        RendPlaceHolders();
-        RendMovingShooter();
-        CreateActiveShooters();
-        RendActiveShooters();
-        Shoot();
-        RendShootingLine();
-        GenerateEnemies();
-        RendEnemies();
-        RendShootersCosts();
-        DetectHitBarCollision();
-        DetectBulletEnemyCollision();
-        RendDisapearingEnemies();
-        RendStartingCoins();
+		RendPlacings();
+		RendHitBar();
+		RendShooters();
+		RendHealthPoints();
+		RendPlaceHolders();
+		RendMovingShooter();
+		CreateActiveShooters();
+		RendActiveShooters();
+		Shoot();
+		RendShootingLine();
+		GenerateEnemies();
+		RendEnemies();
+		RendShootersCosts();
+		DetectHitBarCollision();
+		DetectBulletEnemyCollision();
+		RendDisapearingEnemies();
+		RendStartingCoins();
 
-        UpdateEnemiesTimers(deltaTimeSeconds);
+		UpdateEnemiesTimers(deltaTimeSeconds);
 
-        if (SpawnerIsOnTheTable() || nrOfCoins <= 3)
-        {
-            GenerateRandomCoins();
-            RendRandomCoins();
-        }
-        else
-        {
-            ClearRandomCoins();
-        }
+		if (SpawnerIsOnTheTable() || nrOfCoins <= 3)
+		{
+			GenerateRandomCoins();
+			RendRandomCoins();
+		}
+		else
+		{
+			ClearRandomCoins();
+		}
 
-        DetectShooterEnemyCollision();
-        RendDisapearingShooters();
-        MakeShootersDisappear();
-        //UnfreezeEnemies();
-        IncreaseDifficulty();
+		DetectShooterEnemyCollision();
+		RendDisapearingShooters();
+		MakeShootersDisappear();
+		//UnfreezeEnemies();
+		IncreaseDifficulty();
 
-        CheckGameOver();
-    }
-    else
-    {
-        MakeGameOver();
-    }
+		CheckGameOver();
+	}
+	else
+	{
+		MakeGameOver();
+	}
 }
 
 
 void InitClass::OnMouseBtnPress(int mouseX, int mouseY, int button, int mods)
 {
-    // Set mouse coordinates to world coordinates
-    mouseY = window->GetResolution().y - mouseY;
+	// Set mouse coordinates to world coordinates
+	mouseY = window->GetResolution().y - mouseY;
 
-    for (int i = 0; i < PLACEHOLDERS_COUNT; i++)
-    {
-        double shooterBeginX = PLACEHOLDERS_X + DEFAULT_SQUARE_SIDE / 8 + SHOOTER_DISPLACEMENT * i;
-        double shooterEndX = shooterBeginX + DEFAULT_SQUARE_SIDE * SHOOTER_SCALE;
+	for (int i = 0; i < PLACEHOLDERS_COUNT; i++)
+	{
+		double shooterBeginX = PLACEHOLDERS_X + DEFAULT_SQUARE_SIDE / 8 + SHOOTER_DISPLACEMENT * i;
+		double shooterEndX = shooterBeginX + DEFAULT_SQUARE_SIDE * SHOOTER_SCALE;
 
-        double shooterBeginY = PLACEHOLDERS_Y + DEFAULT_SQUARE_SIDE / 4;
-        double shooterEndY = PLACEHOLDERS_Y + (double)3 / 4 * DEFAULT_SQUARE_SIDE;
+		double shooterBeginY = PLACEHOLDERS_Y + DEFAULT_SQUARE_SIDE / 4;
+		double shooterEndY = PLACEHOLDERS_Y + (double)3 / 4 * DEFAULT_SQUARE_SIDE;
 
-        if (mouseX >= shooterBeginX && mouseX <= shooterEndX &&
-            mouseY >= shooterBeginY && mouseY <= shooterEndY)
-        {
-            holdingShooterColor = colorUtils->SelectColor(i);
-            pressedCorrectly = true;
-            isSimpleShooter = true;
-            isSpawner = false;
-            isCannon = false;
-            isEater = false;
-            isSnowCannon = false;
-        }
-    }
+		if (mouseX >= shooterBeginX && mouseX <= shooterEndX &&
+			mouseY >= shooterBeginY && mouseY <= shooterEndY)
+		{
+			holdingShooterColor = colorUtils->SelectColor(i);
+			pressedCorrectly = true;
+			isSimpleShooter = true;
+			isSpawner = false;
+			isCannon = false;
+			isEater = false;
+			isSnowCannon = false;
+		}
+	}
 
-    for (int i = 0; i < PLACEHOLDERS_COUNT_TOTAL - PLACEHOLDERS_COUNT; i++)
-    {
+	for (int i = 0; i < PLACEHOLDERS_COUNT_TOTAL - PLACEHOLDERS_COUNT; i++)
+	{
 		double shooterBeginX = PLACEHOLDERS_X + DEFAULT_SQUARE_SIDE / 8 + SHOOTER_DISPLACEMENT * i;
 		double shooterEndX = shooterBeginX + DEFAULT_SQUARE_SIDE * SHOOTER_SCALE;
 
 		double shooterBeginY = PLACEHOLDERS_Y + DEFAULT_SQUARE_SIDE / 4 - MATRIX_DISPLACEMENT;
 		double shooterEndY = PLACEHOLDERS_Y + (double)3 / 4 * DEFAULT_SQUARE_SIDE - MATRIX_DISPLACEMENT;
 
-        if (mouseX >= shooterBeginX && mouseX <= shooterEndX &&
-            mouseY >= shooterBeginY && mouseY <= shooterEndY)
-        {
+		if (mouseX >= shooterBeginX && mouseX <= shooterEndX &&
+			mouseY >= shooterBeginY && mouseY <= shooterEndY)
+		{
 			holdingShooterColor = colorUtils->SelectColor(i + PLACEHOLDERS_COUNT);
 			pressedCorrectly = true;
-            isSimpleShooter = false;
+			isSimpleShooter = false;
 
-            if (i == 0)
-            {
-                isSpawner = true;
-                isCannon = false;
-                isEater = false;
-                isSnowCannon = false;
-            } 
-            else if (i == 1)
-            {
-            	isCannon = true;
-                isSpawner = false;
-                isEater = false;
-                isSnowCannon = false;
-            } 
-            else if (i == 2)
-            {
+			if (i == 0)
+			{
+				isSpawner = true;
+				isCannon = false;
+				isEater = false;
+				isSnowCannon = false;
+			} 
+			else if (i == 1)
+			{
+				isCannon = true;
+				isSpawner = false;
+				isEater = false;
+				isSnowCannon = false;
+			} 
+			else if (i == 2)
+			{
 				isEater = true;
 				isSpawner = false;
 				isCannon = false;
-                isSnowCannon = false;
+				isSnowCannon = false;
 			} 
-            else if (i == 3)
-            {
-                isSpawner = false;
-                isCannon = false;
-                isEater = false;
-                isSnowCannon = true;
-            }
+			else if (i == 3)
+			{
+				isSpawner = false;
+				isCannon = false;
+				isEater = false;
+				isSnowCannon = true;
+			}
 		}
-    }
+	}
 
 
-    // If one of placings are pressed with right click, set the corresponding placing as not taken
-    if (window->MouseHold(GLFW_MOUSE_BUTTON_RIGHT))
-    {
-        for (int i = 0; i < PLACINGS_SIZE; i++)
-        {
-            for (int j = 0; j < PLACINGS_SIZE; j++)
-            {
-                double shooterBeginX = MATRIX_CORNER_X + MATRIX_DISPLACEMENT * j;
-                double shooterEndX = shooterBeginX + DEFAULT_SQUARE_SIDE;
+	// If one of placings are pressed with right click, set the corresponding placing as not taken
+	if (window->MouseHold(GLFW_MOUSE_BUTTON_RIGHT))
+	{
+		for (int i = 0; i < PLACINGS_SIZE; i++)
+		{
+			for (int j = 0; j < PLACINGS_SIZE; j++)
+			{
+				double shooterBeginX = MATRIX_CORNER_X + MATRIX_DISPLACEMENT * j;
+				double shooterEndX = shooterBeginX + DEFAULT_SQUARE_SIDE;
 
-                double shooterBeginY = MATRIX_CORNER_Y + MATRIX_DISPLACEMENT * i;
-                double shooterEndY = shooterBeginY + DEFAULT_SQUARE_SIDE;
+				double shooterBeginY = MATRIX_CORNER_Y + MATRIX_DISPLACEMENT * i;
+				double shooterEndY = shooterBeginY + DEFAULT_SQUARE_SIDE;
 
-                if (mouseX >= shooterBeginX && mouseX <= shooterEndX &&
-                    mouseY >= shooterBeginY && mouseY <= shooterEndY)
-                {
-                    // Eliminate the shooter from the matrix of shooters
-                    if (staticScene->getPlacing(i, j)->getTaken())
-                    {
-                        staticScene->getPlacing(i, j)->setDisapearing(true);
-                        staticScene->getPlacing(i, j)->setTaken(false);
-                        createdShooter[i][j] = false;
-                    }
-                }
-            }
-        }
-    }
+				if (mouseX >= shooterBeginX && mouseX <= shooterEndX &&
+					mouseY >= shooterBeginY && mouseY <= shooterEndY)
+				{
+					// Eliminate the shooter from the matrix of shooters
+					if (staticScene->getPlacing(i, j)->getTaken())
+					{
+						staticScene->getPlacing(i, j)->setDisapearing(true);
+						staticScene->getPlacing(i, j)->setTaken(false);
+						createdShooter[i][j] = false;
+					}
+				}
+			}
+		}
+	}
 
-    // Detect if click was done inside the radius of a coin and collect it
-    for (int i = 0; i < randomCoins.size(); i++)
-    {
-        if (!randomCoins[i]->getCoinWasCollected())
-        {
+	// Detect if click was done inside the radius of a coin and collect it
+	for (int i = 0; i < randomCoins.size(); i++)
+	{
+		if (!randomCoins[i]->getCoinWasCollected())
+		{
 			double coinCenterX = randomCoins[i]->getPosition().x;
-            double coinCenterY = randomCoins[i]->getPosition().y;
+			double coinCenterY = randomCoins[i]->getPosition().y;
 
-            double radius = DEFAULT_BULLET_SIZE / 2;
-            if (randomCoins[i]->getIsBigCoin())
-            {
+			double radius = DEFAULT_BULLET_SIZE / 2;
+			if (randomCoins[i]->getIsBigCoin())
+			{
 				radius = DEFAULT_BULLET_SIZE * 3 / 4;
 			}
 
-            if (mouseX >= coinCenterX - radius && mouseX <= coinCenterX + radius &&
-                mouseY >= coinCenterY - radius && mouseY <= coinCenterY + radius)
-            {
+			if (mouseX >= coinCenterX - radius && mouseX <= coinCenterX + radius &&
+				mouseY >= coinCenterY - radius && mouseY <= coinCenterY + radius)
+			{
 				randomCoins[i]->setCoinWasCollected(true);
 				nrOfCoins++;
-                if (randomCoins[i]->getIsBigCoin())
-                {
-                    nrOfCoins += 4;
-                }
+				if (randomCoins[i]->getIsBigCoin())
+				{
+					nrOfCoins += 4;
+				}
 			}
 		}
 	}
@@ -1653,32 +1871,32 @@ void InitClass::OnMouseBtnPress(int mouseX, int mouseY, int button, int mods)
 
 void InitClass::OnMouseBtnRelease(int mouseX, int mouseY, int button, int mods)
 {
-    pressedCorrectly = false;
+	pressedCorrectly = false;
 
-    // Set mouse coordinates to world coordinates
-    mouseY = window->GetResolution().y - mouseY;
+	// Set mouse coordinates to world coordinates
+	mouseY = window->GetResolution().y - mouseY;
 
-    for (int i = 0; i < PLACINGS_SIZE; i++)
-    {
-        for (int j = 0; j < PLACINGS_SIZE; j++)
-        {
-            double shooterBeginX = MATRIX_CORNER_X + MATRIX_DISPLACEMENT * j;
-            double shooterEndX = shooterBeginX + DEFAULT_SQUARE_SIDE;
+	for (int i = 0; i < PLACINGS_SIZE; i++)
+	{
+		for (int j = 0; j < PLACINGS_SIZE; j++)
+		{
+			double shooterBeginX = MATRIX_CORNER_X + MATRIX_DISPLACEMENT * j;
+			double shooterEndX = shooterBeginX + DEFAULT_SQUARE_SIDE;
 
-            double shooterBeginY = MATRIX_CORNER_Y + MATRIX_DISPLACEMENT * i;
-            double shooterEndY = shooterBeginY + DEFAULT_SQUARE_SIDE;
-            
-            if (holdingShooter)
-            {
-                if (mouseX >= shooterBeginX && mouseX <= shooterEndX &&
-                    mouseY >= shooterBeginY && mouseY <= shooterEndY)
-                {
-                    releasedCorrectly = true;
-                    releaseRow = i;
-                    releaseCol = j;
-                    releasedShooterColor = holdingShooterColor;
-                }
-            }
-        }
-    }
+			double shooterBeginY = MATRIX_CORNER_Y + MATRIX_DISPLACEMENT * i;
+			double shooterEndY = shooterBeginY + DEFAULT_SQUARE_SIDE;
+			
+			if (holdingShooter)
+			{
+				if (mouseX >= shooterBeginX && mouseX <= shooterEndX &&
+					mouseY >= shooterBeginY && mouseY <= shooterEndY)
+				{
+					releasedCorrectly = true;
+					releaseRow = i;
+					releaseCol = j;
+					releasedShooterColor = holdingShooterColor;
+				}
+			}
+		}
+	}
 }

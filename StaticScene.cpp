@@ -64,45 +64,53 @@ namespace m1
         glm::vec3 color = glm::vec3(1.0f, 0.5f, 0.0f);
         MeshWrapper* shooter = new MeshWrapper(shapes::CreateShooter("shooter1", corner_, (float)(squareSide_ * SHOOTER_SCALE), color, true));
         shooter->setColor(color);
+        shooter->setType(CLASSIC);
 		shooters_.push_back(shooter);   
 
         color = glm::vec3(0.0f, 0.0f, 1.0f);
         shooter = new MeshWrapper(shapes::CreateShooter("shooter2", corner_, (float)(squareSide_ * SHOOTER_SCALE), color, true));
         shooter->setColor(color);
+        shooter->setType(CLASSIC);
         shooters_.push_back(shooter);
 
         color = glm::vec3(1.0f, 1.0f, 0.0f);
         shooter = new MeshWrapper(shapes::CreateShooter("shooter3", corner_, (float)(squareSide_ * SHOOTER_SCALE), color, true));
         shooter->setColor(color);
+        shooter->setType(CLASSIC);
         shooters_.push_back(shooter);
 
         color = glm::vec3(0.6f, 0.0f, 1.0f);
         shooter = new MeshWrapper(shapes::CreateShooter("shooter4", corner_, (float)(squareSide_ * SHOOTER_SCALE), color, true));
         shooter->setColor(color);
+        shooter->setType(CLASSIC);
         shooters_.push_back(shooter);
 
         glm::vec3 colorOutside = glm::vec3(1.0f, 0.85f, 0.5f);
         glm::vec3 colorInside = glm::vec3(1.0f, 1.0f, 0.98f);
         shooter = new MeshWrapper(shapes::CreateSpawner("spawner", corner_, (float)(squareSide_ * SHOOTER_SCALE), colorOutside, colorInside, true));
         shooter->setColor(color);
+        shooter->setType(SPAWNER);
         shooters_.push_back(shooter);
 
         colorOutside = glm::vec3(0.1f, 0.5f, 0.5f);
         colorInside = glm::vec3(1.0f, 1.0f, 0.98f);
         shooter = new MeshWrapper(shapes::CreateCannon("cannon", corner_, (float)(squareSide_ * SHOOTER_SCALE), colorOutside, colorInside, true));
         shooter->setColor(color);
+        shooter->setType(CANNON);
         shooters_.push_back(shooter);
 
         colorOutside = glm::vec3(0.0f, 0.5f, 0.0f);
         colorInside = glm::vec3(1.0f, 0.0f, 0.0f);
         shooter = new MeshWrapper(shapes::CreateEater("eater", corner_, (float)(squareSide_ * SHOOTER_SCALE), colorOutside, colorInside, true));
         shooter->setColor(color);
+        shooter->setType(EATER);
         shooters_.push_back(shooter);
 
         colorOutside = glm::vec3(0.7f, 0.7f, 0.9f);
         colorInside = glm::vec3(1.0f, 1.0f, 1.0f);
         shooter = new MeshWrapper(shapes::CreateSnowCannon("snowCannon", corner_, (float)(squareSide_ * SHOOTER_SCALE), colorOutside, colorInside, true));
         shooter->setColor(color);
+        shooter->setType(SNOW_CANNON);
         shooters_.push_back(shooter);
     }
 

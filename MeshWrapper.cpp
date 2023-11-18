@@ -153,3 +153,13 @@ glm::vec2 MeshWrapper::getFrozenPosition() const
 {
 	return frozenPosition_;
 }
+
+void MeshWrapper::setType(int type)
+{
+	type_ = type;
+}
+
+int MeshWrapper::getType() const
+{
+	return type_;
+}

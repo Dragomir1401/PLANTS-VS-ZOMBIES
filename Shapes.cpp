@@ -55,10 +55,10 @@ Mesh* shapes::CreateRectangle(
 
 	std::vector<VertexFormat> vertices =
     {
-		VertexFormat(corner, color),
-		VertexFormat(corner + glm::vec3(width, 0, 0), color),
-		VertexFormat(corner + glm::vec3(width, length, 0), color),
-		VertexFormat(corner + glm::vec3(0, length, 0), color)
+		VertexFormat(corner, color, glm::vec3(0.0f, 1.0f, 0.0f), glm::vec2(0.0f, 0.0f)),
+		VertexFormat(corner + glm::vec3(width, 0, 0), color, glm::vec3(0.0f, 1.0f, 0.0f), glm::vec2(1.0f, 0.0f)),
+		VertexFormat(corner + glm::vec3(width, length, 0), color, glm::vec3(0.0f, 1.0f, 0.0f), glm::vec2(1.0f, 1.0f)),
+		VertexFormat(corner + glm::vec3(0, length, 0), color, glm::vec3(0.0f, 1.0f, 0.0f), glm::vec2(0.0f, 1.0f))
 	};
 
 	Mesh* rectangle = new Mesh(name);
@@ -88,16 +88,16 @@ Mesh* shapes::CreateShooter(
     std::vector<VertexFormat> vertices =
     {
         // Diamond vertices
-		VertexFormat(corner, color),
-		VertexFormat(corner + glm::vec3(length / 4, length / 2, 0), color),
-		VertexFormat(corner + glm::vec3(length / 2, 0, 0), color),
-		VertexFormat(corner + glm::vec3(length / 4, -length / 2, 0), color),
+		VertexFormat(corner, color, glm::vec3(0.0f, 1.0f, 1.0f), glm::vec2(0.0f, 0.0f)),
+		VertexFormat(corner + glm::vec3(length / 4, length / 2, 0), color, glm::vec3(0.0f, 1.0f, 1.0f), glm::vec2(0.25f, 0.5f)),
+		VertexFormat(corner + glm::vec3(length / 2, 0, 0), color, glm::vec3(0.0f, 1.0f, 1.0f), glm::vec2(0.5f, 0.0f)),
+		VertexFormat(corner + glm::vec3(length / 4, -length / 2, 0), color, glm::vec3(0.0f, 1.0f, 1.0f), glm::vec2(0.25f, -0.5f)),
 
         // Rectangle vertices
-        VertexFormat(corner + glm::vec3(length / 4, length / 6, 0), color),
-        VertexFormat(corner + glm::vec3(length, length / 6, 0), color),
-        VertexFormat(corner + glm::vec3(length / 4, -length / 6, 0), color),
-        VertexFormat(corner + glm::vec3(length, -length / 6, 0), color),
+        VertexFormat(corner + glm::vec3(length / 4, length / 6, 0), color, glm::vec3(0.0f, 1.0f, 1.0f), glm::vec2(0.25f, 1.0f / 6)),
+        VertexFormat(corner + glm::vec3(length, length / 6, 0), color, glm::vec3(0.0f, 1.0f, 1.0f), glm::vec2(1.0f, 1.0f / 6)),
+        VertexFormat(corner + glm::vec3(length / 4, -length / 6, 0), color, glm::vec3(0.0f, 1.0f, 1.0f), glm::vec2(0.25f, -1.0f / 6)),
+        VertexFormat(corner + glm::vec3(length, -length / 6, 0), color, glm::vec3(0.0f, 1.0f, 1.0f), glm::vec2(1.0f, -1.0f / 6)),
 	};
 
 
@@ -245,13 +245,13 @@ Mesh* shapes::CreateHexagon(
 
     std::vector<VertexFormat> vertices =
     {
-        VertexFormat(c, colorOutside),
-        VertexFormat(c + glm::vec3(-r, (double)-3 / 5 * r, 0), colorOutside),
-        VertexFormat(c + glm::vec3(-r, (double)3 / 5 * r, 0), colorOutside),
-        VertexFormat(c + glm::vec3(0, r, 0), colorOutside),
-        VertexFormat(c + glm::vec3(r, (double)3 / 5 * r, 0), colorOutside),
-        VertexFormat(c + glm::vec3(r, (double)-3 / 5 * r, 0), colorOutside),
-        VertexFormat(c + glm::vec3(0, -r, 0), colorOutside),
+        VertexFormat(c, colorOutside, glm::vec3(0.0f, 1.0f, 0.0f), glm::vec2(0.0f, 0.0f)),
+        VertexFormat(c + glm::vec3(-r, (double)-3 / 5 * r, 0), colorOutside, glm::vec3(0.0f, 1.0f, 0.0f), glm::vec2(-0.6f, 0.0f)),
+        VertexFormat(c + glm::vec3(-r, (double)3 / 5 * r, 0), colorOutside, glm::vec3(0.0f, 1.0f, 0.0f), glm::vec2(-1.0f, 0.6f)),
+        VertexFormat(c + glm::vec3(0, r, 0), colorOutside, glm::vec3(0.0f, 1.0f, 0.0f), glm::vec2(0.0f, 1.0f)),
+        VertexFormat(c + glm::vec3(r, (double)3 / 5 * r, 0), colorOutside, glm::vec3(0.0f, 1.0f, 0.0f), glm::vec2(1.0f, 0.6f)),
+        VertexFormat(c + glm::vec3(r, (double)-3 / 5 * r, 0), colorOutside, glm::vec3(0.0f, 1.0f, 0.0f), glm::vec2(1.0f, -0.6f)),
+        VertexFormat(c + glm::vec3(0, -r, 0), colorOutside, glm::vec3(0.0f, 1.0f, 0.0f), glm::vec2(0.0f, -1.0f)),
 
         VertexFormat(c1, colorInside),
         VertexFormat(c1 + glm::vec3(-r / 2 * scale, (double)-1 / 5 * r * scale, 0), colorInside),
@@ -303,29 +303,30 @@ Mesh* shapes::CreateSpawner(
     float r1 = length / 15;
     glm::vec3 c1 = center;
     c1.z = 3;
+    colorInside = glm::vec3(1.0f, 1.0f, 1.0f);
 
     std::vector<VertexFormat> vertices =
     {
-        VertexFormat(c, colorOutside),
-        VertexFormat(c + glm::vec3(-3 * r, r, 0), colorOutside),
-        VertexFormat(c + glm::vec3(-5 * r, 3 * r, 0), colorOutside),
-        VertexFormat(c + glm::vec3(-3 * r, 3 * r, 0), colorOutside),
-        VertexFormat(c + glm::vec3(-2 * r, 6 * r, 0), colorOutside),
-        VertexFormat(c + glm::vec3(0, 3 * r, 0), colorOutside),
-        VertexFormat(c + glm::vec3(2 * r, 6 * r, 0), colorOutside),
-        VertexFormat(c + glm::vec3(3 * r, 3 * r, 0), colorOutside),
-        VertexFormat(c + glm::vec3(5 * r, 3 * r, 0), colorOutside),
-        VertexFormat(c + glm::vec3(3 * r, r, 0), colorOutside),
+        VertexFormat(c, colorOutside, glm::vec3(0.0f, 1.0f, 0.0f),    glm::vec2(0.0f, 0.0f)),
+        VertexFormat(c + glm::vec3(-3 * r, r, 0), colorOutside,       glm::vec3(0.0f, 1.0f, 0.0f), glm::vec2(-0.3f, 1.0f)),
+        VertexFormat(c + glm::vec3(-5 * r, 3 * r, 0), colorOutside,   glm::vec3(0.0f, 1.0f, 0.0f), glm::vec2(-0.5f, 3.0f)),
+        VertexFormat(c + glm::vec3(-3 * r, 3 * r, 0), colorOutside,   glm::vec3(0.0f, 1.0f, 0.0f), glm::vec2(-0.3f, -0.3f)),
+        VertexFormat(c + glm::vec3(-2 * r, 6 * r, 0), colorOutside,   glm::vec3(0.0f, 1.0f, 0.0f), glm::vec2(-0.2f, 0.6f)),
+        VertexFormat(c + glm::vec3(0, 3 * r, 0), colorOutside,        glm::vec3(0.0f, 1.0f, 0.0f), glm::vec2(0.0f, 0.3f)),
+        VertexFormat(c + glm::vec3(2 * r, 6 * r, 0), colorOutside,    glm::vec3(0.0f, 1.0f, 0.0f), glm::vec2(0.2f, 0.6f)),
+        VertexFormat(c + glm::vec3(3 * r, 3 * r, 0), colorOutside,    glm::vec3(0.0f, 1.0f, 0.0f), glm::vec2(0.3f, 0.3f)),
+        VertexFormat(c + glm::vec3(5 * r, 3 * r, 0), colorOutside,    glm::vec3(0.0f, 1.0f, 0.0f), glm::vec2(0.5f, 0.3f)),
+        VertexFormat(c + glm::vec3(3 * r, r, 0), colorOutside,        glm::vec3(0.0f, 1.0f, 0.0f), glm::vec2(0.3f, 1.0f)),
 
-        VertexFormat(c + glm::vec3(5 * r, -r, 0), colorOutside),
-        VertexFormat(c + glm::vec3(5 * r, -3 * r, 0), colorOutside),
-        VertexFormat(c + glm::vec3(3 * r, -5 * r, 0), colorOutside),
-        VertexFormat(c + glm::vec3(r, -5 * r, 0), colorOutside),
-        VertexFormat(c + glm::vec3(0, -3 * r, 0), colorOutside),
-        VertexFormat(c + glm::vec3(-r, -5 * r, 0), colorOutside),
-        VertexFormat(c + glm::vec3(-3 * r, -5 * r, 0), colorOutside),
-        VertexFormat(c + glm::vec3(-5 * r, -3 * r, 0), colorOutside),
-        VertexFormat(c + glm::vec3(-5 * r, -r, 0), colorOutside),
+        VertexFormat(c + glm::vec3(5 * r, -r, 0), colorOutside,       glm::vec3(0.0f, 1.0f, 0.0f), glm::vec2(0.5f, -1.0f)),
+        VertexFormat(c + glm::vec3(5 * r, -3 * r, 0), colorOutside,   glm::vec3(0.0f, 1.0f, 0.0f), glm::vec2(0.5f, -0.3f)),
+        VertexFormat(c + glm::vec3(3 * r, -5 * r, 0), colorOutside,   glm::vec3(0.0f, 1.0f, 0.0f), glm::vec2(3.0f, -0.0f)),
+        VertexFormat(c + glm::vec3(r, -5 * r, 0), colorOutside,       glm::vec3(0.0f, 1.0f, 0.0f), glm::vec2(1.0f, -0.5f)),
+        VertexFormat(c + glm::vec3(0, -3 * r, 0), colorOutside,       glm::vec3(0.0f, 1.0f, 0.0f), glm::vec2(0.0f, -0.3f)),
+        VertexFormat(c + glm::vec3(-r, -5 * r, 0), colorOutside,      glm::vec3(0.0f, 1.0f, 0.0f), glm::vec2(-1.0f, -0.5f)),
+        VertexFormat(c + glm::vec3(-3 * r, -5 * r, 0), colorOutside,  glm::vec3(0.0f, 1.0f, 0.0f), glm::vec2(-0.3f, -0.5f)),
+        VertexFormat(c + glm::vec3(-5 * r, -3 * r, 0), colorOutside,  glm::vec3(0.0f, 1.0f, 0.0f), glm::vec2(-0.5f, -0.3f)),
+        VertexFormat(c + glm::vec3(-5 * r, -r, 0), colorOutside,      glm::vec3(0.0f, 1.0f, 0.0f), glm::vec2(-0.5f, -1.0f)),
 
 
         VertexFormat(c1, colorInside),
@@ -389,27 +390,27 @@ Mesh* shapes::CreateCannon(const std::string& name, glm::vec3 center, float leng
 
     std::vector<VertexFormat> vertices =
     {
-        VertexFormat(c, colorOutside),
-        VertexFormat(c + glm::vec3(-8 * r, 5 * r, 0), colorOutside),
-        VertexFormat(c + glm::vec3(-2 * r, 5 * r, 0), colorOutside),
-        VertexFormat(c + glm::vec3(1 * r, 2 * r, 0), colorOutside),
-        VertexFormat(c + glm::vec3(6 * r, 5 * r, 0), colorOutside),
-        VertexFormat(c + glm::vec3(6 * r, -5 * r, 0), colorOutside),
-        VertexFormat(c + glm::vec3(1 * r, -2 * r, 0), colorOutside),
-        VertexFormat(c + glm::vec3(-2 * r, -5 * r, 0), colorOutside),
-        VertexFormat(c + glm::vec3(-8 * r, -5 * r, 0), colorOutside),
-
-        VertexFormat(c1, colorInside),
-        VertexFormat(c1 + glm::vec3(-4 * r, r, 0), colorInside),
-        VertexFormat(c1 + glm::vec3(3 * r, r, 0), colorInside),
-        VertexFormat(c1 + glm::vec3(4 * r, 0, 0), colorInside),
-        VertexFormat(c1 + glm::vec3(3 * r, -r, 0), colorInside),
-        VertexFormat(c1 + glm::vec3(-4 * r, -r, 0), colorInside),
-
-        VertexFormat(c1 + glm::vec3(-r, 2 * r, 0), colorInside),
-        VertexFormat(c1 + glm::vec3(0, 2 * r, 0), colorInside),
-        VertexFormat(c1 + glm::vec3(0, -2 * r, 0), colorInside),
-        VertexFormat(c1 + glm::vec3(-r, -2 * r, 0), colorInside),
+        VertexFormat(c, colorOutside, glm::vec3(0.0f, 1.0f, 0.0f), glm::vec2(0.0f, 0.0f)),
+        VertexFormat(c + glm::vec3(-8 * r, 5 * r, 0), colorOutside, glm::vec3(0.0f, 1.0f, 0.0f), glm::vec2(-0.8f, 0.5f)),
+        VertexFormat(c + glm::vec3(-2 * r, 5 * r, 0), colorOutside, glm::vec3(0.0f, 1.0f, 0.0f), glm::vec2(-0.2f, 0.5f)),
+        VertexFormat(c + glm::vec3(1 * r, 2 * r, 0), colorOutside, glm::vec3(0.0f, 1.0f, 0.0f), glm::vec2(0.1f, 0.2f)),
+        VertexFormat(c + glm::vec3(6 * r, 5 * r, 0), colorOutside, glm::vec3(0.0f, 1.0f, 0.0f), glm::vec2(0.6f, 0.5f)),
+        VertexFormat(c + glm::vec3(6 * r, -5 * r, 0), colorOutside, glm::vec3(0.0f, 1.0f, 0.0f), glm::vec2(0.6f, -0.5f)),
+        VertexFormat(c + glm::vec3(1 * r, -2 * r, 0), colorOutside, glm::vec3(0.0f, 1.0f, 0.0f), glm::vec2(0.1f, -0.2f)),
+        VertexFormat(c + glm::vec3(-2 * r, -5 * r, 0), colorOutside, glm::vec3(0.0f, 1.0f, 0.0f), glm::vec2(-0.2f, -0.5f)),
+        VertexFormat(c + glm::vec3(-8 * r, -5 * r, 0), colorOutside, glm::vec3(0.0f, 1.0f, 0.0f), glm::vec2(-0.8f, -0.5f)),
+ 
+        VertexFormat(c1, colorInside, glm::vec3(0.0f, 1.0f, 0.0f), glm::vec2(0.0f, 0.0f)),
+        VertexFormat(c1 + glm::vec3(-4 * r, r, 0), colorInside, glm::vec3(0.0f, 1.0f, 0.0f), glm::vec2(0.0f, 0.0f)),
+        VertexFormat(c1 + glm::vec3(3 * r, r, 0), colorInside, glm::vec3(0.0f, 1.0f, 0.0f), glm::vec2(0.0f, 0.0f)),
+        VertexFormat(c1 + glm::vec3(4 * r, 0, 0), colorInside, glm::vec3(0.0f, 1.0f, 0.0f), glm::vec2(0.0f, 0.0f)),
+        VertexFormat(c1 + glm::vec3(3 * r, -r, 0), colorInside, glm::vec3(0.0f, 1.0f, 0.0f), glm::vec2(0.0f, 0.0f)),
+        VertexFormat(c1 + glm::vec3(-4 * r, -r, 0), colorInside, glm::vec3(0.0f, 1.0f, 0.0f), glm::vec2(0.0f, 0.0f)),
+ 
+        VertexFormat(c1 + glm::vec3(-r, 2 * r, 0), colorInside, glm::vec3(0.0f, 1.0f, 0.0f), glm::vec2(0.0f, 0.0f)),
+        VertexFormat(c1 + glm::vec3(0, 2 * r, 0), colorInside, glm::vec3(0.0f, 1.0f, 0.0f), glm::vec2(0.0f, 0.0f)),
+        VertexFormat(c1 + glm::vec3(0, -2 * r, 0), colorInside, glm::vec3(0.0f, 1.0f, 0.0f), glm::vec2(0.0f, 0.0f)),
+        VertexFormat(c1 + glm::vec3(-r, -2 * r, 0), colorInside, glm::vec3(0.0f, 1.0f, 0.0f), glm::vec2(0.0f, 0.0f)),
     };
 
     Mesh* spawner = new Mesh(name);
@@ -706,23 +707,23 @@ Mesh* shapes::CreateSnowCannon(const std::string& name, glm::vec3 center, float 
 
     std::vector<VertexFormat> vertices =
     {
-        VertexFormat(c, colorOutside),
-        VertexFormat(c + glm::vec3(-4 * r, 1 * r, 0), colorOutside),
-        VertexFormat(c + glm::vec3(-2 * r, 2 * r, 0), colorOutside),
-        VertexFormat(c + glm::vec3(0 * r, 4 * r, 0), colorOutside),
-        VertexFormat(c + glm::vec3(2 * r, 4 * r, 0), colorOutside),
-        VertexFormat(c + glm::vec3(4 * r, 2 * r, 0), colorOutside), // C
-
-        VertexFormat(c + glm::vec3(6 * r, 2 * r, 0), colorOutside),
-        VertexFormat(c + glm::vec3(6 * r, 1 * r, 0), colorOutside),
-
-        VertexFormat(c + glm::vec3(6 * r, 0 * r, 0), colorOutside),
-        VertexFormat(c + glm::vec3(6 * r, -1 * r, 0), colorOutside),
-        VertexFormat(c + glm::vec3(6 * r, -2 * r, 0), colorOutside),
-
-        VertexFormat(c + glm::vec3(4 * r, -3 * r, 0), colorOutside),
-        VertexFormat(c + glm::vec3(-2 * r, -3 * r, 0), colorOutside),
-        VertexFormat(c + glm::vec3(-4 * r, -1 * r, 0), colorOutside),
+        VertexFormat(c, colorOutside, glm::vec3(0.0f, 1.0f, 0.0f), glm::vec2(0.0f, 0.0f)),
+        VertexFormat(c + glm::vec3(-4 * r, 1 * r, 0), colorOutside, glm::vec3(0.0f, 1.0f, 0.0f), glm::vec2(-4.0f / 8, 1.0f / 8)),
+        VertexFormat(c + glm::vec3(-2 * r, 2 * r, 0), colorOutside, glm::vec3(0.0f, 1.0f, 0.0f), glm::vec2(-2.0f / 8, 2.0f / 8)),
+        VertexFormat(c + glm::vec3(0 * r, 4 * r, 0), colorOutside, glm::vec3(0.0f, 1.0f, 0.0f), glm::vec2(0.0f, 4.0f / 8)),
+        VertexFormat(c + glm::vec3(2 * r, 4 * r, 0), colorOutside, glm::vec3(0.0f, 1.0f, 0.0f), glm::vec2(2.0f / 8, 4.0f / 8)),
+        VertexFormat(c + glm::vec3(4 * r, 2 * r, 0), colorOutside, glm::vec3(0.0f, 1.0f, 0.0f), glm::vec2(4.0f / 8, 2.0f / 8)),
+        
+        VertexFormat(c + glm::vec3(6 * r, 2 * r, 0), colorOutside, glm::vec3(0.0f, 1.0f, 0.0f), glm::vec2(6.0f / 8, 2.0f / 8)),
+        VertexFormat(c + glm::vec3(6 * r, 1 * r, 0), colorOutside, glm::vec3(0.0f, 1.0f, 0.0f), glm::vec2(6.0f / 8, 1.0f / 8)),
+       
+        VertexFormat(c + glm::vec3(6 * r, 0 * r, 0), colorOutside, glm::vec3(0.0f, 1.0f, 0.0f), glm::vec2(6.0f / 8, 0.0f)),
+        VertexFormat(c + glm::vec3(6 * r, -1 * r, 0), colorOutside, glm::vec3(0.0f, 1.0f, 0.0f), glm::vec2(6.0f / 8, -1.0f / 8)),
+        VertexFormat(c + glm::vec3(6 * r, -2 * r, 0), colorOutside, glm::vec3(0.0f, 1.0f, 0.0f), glm::vec2(6.0f / 8, -2.0f / 8)),
+        
+        VertexFormat(c + glm::vec3(4 * r, -3 * r, 0), colorOutside, glm::vec3(0.0f, 1.0f, 0.0f), glm::vec2(4.0f / 8, -3.0f / 8)),
+        VertexFormat(c + glm::vec3(-2 * r, -3 * r, 0), colorOutside, glm::vec3(0.0f, 1.0f, 0.0f), glm::vec2(-2.0f / 8, -3.0f / 8)),
+        VertexFormat(c + glm::vec3(-4 * r, -1 * r, 0), colorOutside, glm::vec3(0.0f, 1.0f, 0.0f), glm::vec2(-4.0f / 8, -1.0f / 8)),
 
         VertexFormat(c, colorInside)
     };

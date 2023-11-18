@@ -28,6 +28,7 @@ namespace m1
         void OnMouseBtnPress(int mouseX, int mouseY, int button, int mods) override;
         void OnMouseBtnRelease(int mouseX, int mouseY, int button, int mods) override;
 
+        void LoadTextures();
         void RendPlacings();
         void RendShooters();
         void RendHitBar();
@@ -63,6 +64,7 @@ namespace m1
         void CheckGameOver();
         void MakeGameOver();
         void RenderTexturedMesh(Mesh* mesh, Shader* shader, const glm::mat4& modelMatrix, Texture2D* texture1, Texture2D* texture2);
+        glm::mat4 ConvertMat3to4(glm::mat3 input);
 
     protected:
         double cx, cy;
@@ -86,7 +88,7 @@ namespace m1
         float currentTimer = 0;
         glm::vec3 holdingShooterColor;
         glm::vec3 releasedShooterColor;
-        MeshWrapperShooter* shootersMatrix[PLACINGS_SIZE][PLACINGS_SIZE];
+        MeshWrapperShooter* shootersMatrix[PLACINGS_SIZE][PLACINGS_SIZE] = { nullptr };
         float timedShooting[PLACINGS_SIZE][PLACINGS_SIZE];
         std::vector<MeshWrapperBullet*> lineBullets[PLACINGS_SIZE];
         std::vector<MeshWrapperEnemy*> lineEnemies[PLACINGS_SIZE];
